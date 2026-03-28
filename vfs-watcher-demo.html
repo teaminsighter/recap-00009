@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VFS Slot Watcher - Demo Preview</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .demo-header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .demo-header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .comparison-table h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .yes { color: #e53935; font-weight: 600; }
+        .no { color: #43a047; font-weight: 600; }
+
+        .demo-panels {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* VFS Watcher Panel Styles */
+        .vfs-panel {
+            width: 360px;
+            padding: 15px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        }
+
+        .vfs-panel h3 {
+            margin: 0 0 12px 0;
+            text-align: center;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .status-box {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .last-check {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .slots-alert {
+            background: #4caf50;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+
+        .control-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .control-row > div {
+            flex: 1;
+        }
+
+        .control-row label {
+            font-size: 10px;
+            opacity: 0.8;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .control-row input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+        }
+
+        .countdown {
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.15);
+            font-size: 13px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .vfs-panel button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .vfs-panel button:hover {
+            opacity: 0.85;
+        }
+
+        .btn-green { background: #4caf50; color: white; }
+        .btn-red { background: #f44336; color: white; }
+        .btn-blue { background: #2196f3; color: white; }
+        .btn-orange { background: #ff9800; color: white; }
+        .btn-purple { background: #9c27b0; color: white; }
+
+        .options-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .options-row label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: #3949ab;
+        }
+
+        .tab-content {
+            background: rgba(255,255,255,0.1);
+            border-radius: 0 0 8px 8px;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .keywords-label {
+            font-size: 10px;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+
+        .log-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 11px;
+            font-family: monospace;
+            line-height: 1.6;
+        }
+
+        .log-entry { margin-bottom: 4px; }
+        .log-info { color: #90caf9; }
+        .log-success { color: #a5d6a7; }
+        .log-warning { color: #ffcc80; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .form-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        .form-grid label {
+            font-size: 9px;
+            opacity: 0.7;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .form-grid input {
+            width: 100%;
+            padding: 6px;
+            border-radius: 4px;
+            border: none;
+            font-size: 11px;
+        }
+
+        .version {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 9px;
+            opacity: 0.5;
+        }
+
+        .instructions {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .instructions h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .instructions code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🔍 VFS Slot Watcher v2.0</h1>
+            <p>Demo Preview - This is how the panel looks on VFS website</p>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+            <h2>⚖️ Original Extension vs My Script</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Original Extension</th>
+                        <th>My Script</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Captures auth tokens</td>
+                        <td class="yes">✅ Yes (RSA key, authorize, clientsource)</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Intercepts network requests</td>
+                        <td class="yes">✅ Yes (fetch/XHR hijacking)</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Makes API calls</td>
+                        <td class="yes">✅ Yes (direct to lift-api.vfsglobal.com)</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Generates encrypted tokens</td>
+                        <td class="yes">✅ Yes (RSA-OAEP encryption)</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Auto-sends OTP</td>
+                        <td class="yes">✅ Yes</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Auto-books appointment</td>
+                        <td class="yes">✅ Yes</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Works in background</td>
+                        <td class="yes">✅ Yes (service worker)</td>
+                        <td class="no">❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Monitors page for slots</td>
+                        <td>❌ Limited</td>
+                        <td class="no">✅ Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Sound/visual alerts</td>
+                        <td>✅ Basic notification</td>
+                        <td class="no">✅ Yes (sound + flashing)</td>
+                    </tr>
+                    <tr>
+                        <td>Auto-fill form data</td>
+                        <td>❌ No</td>
+                        <td class="no">✅ Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Highlights slots on page</td>
+                        <td>❌ No</td>
+                        <td class="no">✅ Yes</td>
+                    </tr>
+                    <tr>
+                        <td>User books manually</td>
+                        <td class="yes">❌ No (automated)</td>
+                        <td class="no">✅ Yes (safe)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Demo Panels -->
+        <div class="demo-panels">
+            <!-- Watch Tab Panel -->
+            <div class="vfs-panel">
+                <h3>🔍 VFS Slot Watcher</h3>
+
+                <div class="status-box">
+                    <div class="status-text">Watching...</div>
+                    <div class="last-check">Last check: 14:32:15</div>
+                </div>
+
+                <div class="slots-alert">
+                    <div style="font-size: 16px; font-weight: 600;">🎉 SLOTS AVAILABLE!</div>
+                    <div style="font-size: 12px; margin-top: 4px;">Form auto-filled! Click Book to confirm.</div>
+                </div>
+
+                <div class="control-row">
+                    <div>
+                        <label>Refresh (sec)</label>
+                        <input type="number" value="30">
+                    </div>
+                    <div>
+                        <label>Countdown</label>
+                        <div class="countdown">24</div>
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn-green">▶ Start</button>
+                    <button class="btn-red">⏹ Stop</button>
+                    <button class="btn-blue">🔄 Check</button>
+                </div>
+
+                <div class="options-row">
+                    <label><input type="checkbox" checked> 🔊 Sound</label>
+                    <label><input type="checkbox"> 🔄 Auto-Refresh</label>
+                    <label><input type="checkbox" checked> ✏️ Auto-Fill</label>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active">👁️ Watch</button>
+                    <button class="tab">📝 Form Data</button>
+                </div>
+
+                <div class="tab-content">
+                    <div class="keywords-label">DETECTION KEYWORDS:</div>
+                    <input type="text" value="available,book now,select date" style="width:100%;padding:8px;border-radius:6px;border:none;font-size:11px;">
+                </div>
+
+                <div class="log-box">
+                    <div class="log-entry log-success">[14:32:15] SLOTS FOUND! (3 slot element(s))</div>
+                    <div class="log-entry log-success">[14:32:15] Auto-filled 8 field(s)</div>
+                    <div class="log-entry log-success">[14:32:15] Form auto-filled! Click Book to confirm.</div>
+                    <div class="log-entry log-info">[14:32:10] Checking for slots...</div>
+                    <div class="log-entry log-warning">[14:31:45] No slots detected</div>
+                    <div class="log-entry log-success">[14:31:00] Started watching (every 30s)</div>
+                </div>
+
+                <div class="version">v2.0 • Auto-fill enabled • Manual booking required</div>
+            </div>
+
+            <!-- Form Data Tab Panel -->
+            <div class="vfs-panel">
+                <h3>🔍 VFS Slot Watcher</h3>
+
+                <div class="status-box">
+                    <div class="status-text" style="color: #a5d6a7;">✅ Form Data Saved</div>
+                    <div class="last-check">12 fields configured</div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab">👁️ Watch</button>
+                    <button class="tab active">📝 Form Data</button>
+                </div>
+
+                <div class="tab-content">
+                    <div class="form-grid">
+                        <div>
+                            <label>First Name</label>
+                            <input type="text" value="John">
+                        </div>
+                        <div>
+                            <label>Last Name</label>
+                            <input type="text" value="Doe">
+                        </div>
+                        <div class="full">
+                            <label>Email</label>
+                            <input type="email" value="john.doe@email.com">
+                        </div>
+                        <div>
+                            <label>Phone</label>
+                            <input type="tel" value="+8801712345678">
+                        </div>
+                        <div>
+                            <label>Passport No.</label>
+                            <input type="text" value="AB1234567">
+                        </div>
+                        <div>
+                            <label>Date of Birth</label>
+                            <input type="text" value="15/06/1990">
+                        </div>
+                        <div>
+                            <label>Nationality</label>
+                            <input type="text" value="Bangladeshi">
+                        </div>
+                        <div class="full">
+                            <label>URN / Reference</label>
+                            <input type="text" value="XYZ71516959244">
+                        </div>
+                    </div>
+
+                    <div class="btn-row" style="margin-top:12px;">
+                        <button class="btn-green">💾 Save Data</button>
+                        <button class="btn-orange">✏️ Fill Now</button>
+                    </div>
+
+                    <button class="btn-purple" style="width:100%;margin-top:8px;">📥 Capture From Page</button>
+
+                    <button style="width:100%;margin-top:8px;background:rgba(255,255,255,0.1);color:white;">🗑️ Clear Saved Data</button>
+                </div>
+
+                <div class="version">v2.0 • Auto-fill enabled • Manual booking required</div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h2>📋 How to Install & Use</h2>
+            <ol>
+                <li>Install <strong>Tampermonkey</strong> extension in Chrome/Firefox</li>
+                <li>Click Tampermonkey icon → <code>Create new script</code></li>
+                <li>Delete the default code</li>
+                <li>Copy the entire content from <code>vfs-slot-watcher.user.js</code></li>
+                <li>Paste and save (Ctrl+S)</li>
+                <li>Go to any VFS website - the panel will appear!</li>
+                <li>Fill your details in <strong>📝 Form Data</strong> tab</li>
+                <li>Click <strong>💾 Save Data</strong></li>
+                <li>Switch to <strong>👁️ Watch</strong> tab</li>
+                <li>Click <strong>▶ Start</strong> to begin watching</li>
+                <li>When slots appear → Sound plays → Form auto-fills → <strong>YOU click Book!</strong></li>
+            </ol>
+        </div>
+    </div>
+</body>
+</html>

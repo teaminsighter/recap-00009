@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "VFS Slot Checker",
+  "version": "1.0",
+  "description": "Auto-check VFS appointment slots after login",
+  "permissions": [
+    "storage",
+    "notifications",
+    "alarms",
+    "webRequest"
+  ],
+  "host_permissions": [
+    "*://*.vfsglobal.com/*",
+    "*://lift-api.vfsglobal.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.vfsglobal.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon.png"
+    }
+  },
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

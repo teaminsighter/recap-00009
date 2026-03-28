@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 380px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    color: #333;
+    background: #f8f9fa;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .header .sub {
+    font-size: 11px;
+    opacity: 0.8;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-dot.red { background: #e53935; }
+  .status-dot.yellow { background: #fdd835; }
+  .status-dot.green { background: #43a047; }
+
+  .status-text {
+    flex: 1;
+    font-size: 12px;
+  }
+
+  .status-email {
+    font-size: 11px;
+    color: #666;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .section {
+    padding: 12px 16px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  button {
+    flex: 1;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  button:hover { opacity: 0.9; transform: translateY(-1px); }
+  button:active { transform: translateY(0); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .btn-primary {
+    background: #1a237e;
+    color: white;
+  }
+
+  .btn-success {
+    background: #2e7d32;
+    color: white;
+  }
+
+  .btn-warning {
+    background: #f57f17;
+    color: white;
+  }
+
+  .btn-danger {
+    background: #c62828;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+  }
+
+  .result-box {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    display: none;
+  }
+
+  .result-box.visible {
+    display: block;
+  }
+
+  .result-box.slots-found {
+    border-color: #43a047;
+    background: #e8f5e9;
+  }
+
+  .result-box.error {
+    border-color: #e53935;
+    background: #ffebee;
+  }
+
+  .last-check {
+    font-size: 11px;
+    color: #999;
+    text-align: center;
+    padding: 4px;
+  }
+
+  .quick-actions {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+
+  .qa-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .qa-inputs label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #666;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .qa-inputs input {
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .qa-inputs input:focus {
+    border-color: #1a237e;
+    outline: none;
+  }
+
+  .qa-inputs .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .qa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .qa-grid button {
+    padding: 8px 6px;
+    font-size: 11px;
+    flex: none;
+  }
+
+  .btn-teal {
+    background: #00796b;
+    color: white;
+  }
+
+  .btn-purple {
+    background: #5e35b1;
+    color: white;
+  }
+
+  .btn-orange {
+    background: #e65100;
+    color: white;
+  }
+
+  .btn-blue {
+    background: #1565c0;
+    color: white;
+  }
+
+  .btn-indigo {
+    background: #283593;
+    color: white;
+  }
+
+  /* Token Display Styles */
+  .tokens-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 8px;
+    margin-top: 8px;
+  }
+
+  .tokens-section .section-label {
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .token-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+
+  .token-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .token-row label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #555;
+    width: 36px;
+    flex-shrink: 0;
+  }
+
+  .token-input-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .token-row input {
+    width: 100%;
+    padding: 6px 28px 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 10px;
+    background: #f9f9f9;
+    color: #333;
+  }
+
+  .token-row input:focus {
+    outline: none;
+    border-color: #1a237e;
+    background: #fff;
+  }
+
+  .token-row input::placeholder {
+    color: #aaa;
+    font-style: italic;
+  }
+
+  .copy-btn {
+    position: absolute;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.4;
+    transition: all 0.15s;
+  }
+
+  .copy-btn:hover {
+    opacity: 1;
+  }
+
+  .copy-btn.copied {
+    opacity: 1;
+  }
+
+  .copy-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: #666;
+  }
+
+  .copy-btn:hover svg {
+    fill: #1a237e;
+  }
+
+  .copy-btn.copied svg {
+    fill: #43a047;
+  }
+
+  /* Payload Configuration Styles */
+  .payload-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .payload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .payload-header:hover {
+    background: #efefef;
+  }
+
+  .payload-header .title-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .payload-header .toggle-icon {
+    width: 16px;
+    height: 16px;
+    fill: #666;
+    transition: transform 0.2s;
+  }
+
+  .payload-header.expanded .toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  .payload-header .title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .payload-header .actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .payload-header button {
+    font-size: 9px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  .payload-body {
+    padding: 8px;
+    display: none;
+  }
+
+  .payload-body.visible {
+    display: block;
+  }
+
+  /* Action buttons */
+  .api-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-top: 8px;
+    padding: 8px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+  }
+
+  .api-buttons button {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+
+  .api-buttons button.full-width {
+    grid-column: 1 / -1;
+    padding: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Visual Report Section */
+  .report-section {
+    display: none;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .report-section.visible {
+    display: block;
+  }
+
+  .report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+  }
+
+  .report-title {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .btn-close {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+
+  .btn-close:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  .report-info {
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .report-info .info-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .report-info .info-label {
+    color: #666;
+    min-width: 60px;
+  }
+
+  .report-info .info-value {
+    color: #333;
+    font-weight: 500;
+  }
+
+  .report-subtitle {
+    font-size: 11px;
+    font-weight: 600;
+    color: #555;
+    padding: 8px 12px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #eee;
+  }
+
+  .report-subtitle .selected-date {
+    color: #1a237e;
+    font-weight: 600;
+  }
+
+  .report-dates, .report-times {
+    display: none;
+  }
+
+  .report-dates.visible, .report-times.visible {
+    display: block;
+  }
+
+  .dates-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 10px 12px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .date-item {
+    padding: 8px 6px;
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 10px;
+    color: #2e7d32;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .date-item:hover {
+    background: #c8e6c9;
+    transform: scale(1.02);
+  }
+
+  .date-item.selected {
+    background: #1a237e;
+    border-color: #1a237e;
+    color: white;
+  }
+
+  .date-item .day-name {
+    font-size: 8px;
+    opacity: 0.8;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .times-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    padding: 10px 12px;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .time-item {
+    padding: 10px 8px;
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 11px;
+    color: #1565c0;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .time-item:hover {
+    background: #bbdefb;
+    transform: scale(1.02);
+  }
+
+  .time-item.selected {
+    background: #1a237e;
+    border-color: #1a237e;
+    color: white;
+  }
+
+  .time-item .slot-type {
+    font-size: 8px;
+    opacity: 0.7;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .report-empty {
+    padding: 20px;
+    text-align: center;
+    color: #999;
+    font-size: 11px;
+  }
+
+  .report-loading {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-size: 11px;
+  }
+
+  .payload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .payload-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .payload-field.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .payload-field label {
+    font-size: 9px;
+    font-weight: 600;
+    color: #666;
+  }
+
+  .payload-field input, .payload-field select {
+    padding: 5px 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 10px;
+    background: #fafafa;
+  }
+
+  .payload-field input:focus, .payload-field select:focus {
+    outline: none;
+    border-color: #1a237e;
+    background: #fff;
+  }
+
+  .payload-field input::placeholder {
+    color: #aaa;
+    font-style: italic;
+  }
+
+  .payload-field.captured input {
+    background: #e8f5e9;
+    border-color: #a5d6a7;
+  }
+
+  .payload-json-editor {
+    display: none;
+    padding: 8px;
+    border-top: 1px solid #eee;
+  }
+
+  .payload-json-editor.visible {
+    display: block;
+  }
+
+  .payload-json-editor textarea {
+    width: 100%;
+    height: 120px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 9px;
+    line-height: 1.4;
+    resize: vertical;
+    background: #1e1e1e;
+    color: #d4d4d4;
+  }
+
+  .payload-json-editor textarea:focus {
+    outline: none;
+    border-color: #1a237e;
+  }
+
+  .payload-actions {
+    display: flex;
+    gap: 6px;
+    padding: 8px;
+    border-top: 1px solid #eee;
+    background: #f9f9f9;
+  }
+
+  .payload-actions button {
+    flex: 1;
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .capture-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+    margin-left: 4px;
+  }
+
+  .capture-indicator.captured {
+    background: #43a047;
+  }
+
+  /* Success/Error Toast */
+  .status-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 1001;
+    text-align: center;
+    max-width: 280px;
+  }
+
+  .status-toast.visible {
+    opacity: 1;
+  }
+
+  .status-toast.success {
+    background: #43a047;
+    color: white;
+    box-shadow: 0 4px 20px rgba(67, 160, 71, 0.4);
+  }
+
+  .status-toast.error {
+    background: #e53935;
+    color: white;
+    box-shadow: 0 4px 20px rgba(229, 57, 53, 0.4);
+  }
+
+  .status-toast .toast-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .copied-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  .copied-toast.visible {
+    opacity: 1;
+  }
+
+  .footer {
+    padding: 8px 16px;
+    text-align: center;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .footer button {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .slots-alert {
+    display: none;
+    background: #43a047;
+    color: white;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    animation: pulse 1s infinite;
+  }
+
+  .slots-alert.visible {
+    display: block;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Auto-Book Panel Styles */
+  .auto-book-panel {
+    background: linear-gradient(135deg, #1a237e, #283593);
+    margin: 0;
+    padding: 12px 16px;
+    color: white;
+  }
+
+  .auto-book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .auto-book-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.3);
+    transition: 0.3s;
+    border-radius: 24px;
+  }
+
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+  }
+
+  .toggle-switch input:checked + .toggle-slider {
+    background-color: #43a047;
+  }
+
+  .toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(20px);
+  }
+
+  .auto-book-progress {
+    display: none;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  .auto-book-progress.visible {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-size: 10px;
+    opacity: 0.5;
+  }
+
+  .progress-step.active {
+    opacity: 1;
+    background: rgba(255,255,255,0.25);
+    animation: pulse 1s infinite;
+  }
+
+  .progress-step.done {
+    opacity: 1;
+    background: #43a047;
+  }
+
+  .progress-step.waiting {
+    opacity: 1;
+    background: #ff9800;
+  }
+
+  .progress-step.error {
+    opacity: 1;
+    background: #e53935;
+  }
+
+  .auto-book-selected {
+    display: none;
+    gap: 16px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  .auto-book-selected.visible {
+    display: flex;
+  }
+
+  .selected-info {
+    display: flex;
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .selected-info .info-label {
+    opacity: 0.7;
+  }
+
+  .selected-info .info-value {
+    font-weight: 600;
+  }
+
+  .auto-book-otp {
+    display: none;
+    padding: 10px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 8px;
+    color: #333;
+  }
+
+  .auto-book-otp.visible {
+    display: block;
+  }
+
+  .auto-book-otp label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1a237e;
+  }
+
+  .otp-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .otp-input-row input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #1a237e;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 4px;
+  }
+
+  .otp-input-row input:focus {
+    outline: none;
+    border-color: #43a047;
+  }
+
+  .otp-input-row button {
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .auto-book-status {
+    display: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .auto-book-status.visible {
+    display: block;
+  }
+
+  .auto-book-status.success {
+    background: #43a047;
+  }
+
+  .auto-book-status.error {
+    background: #e53935;
+  }
+
+  .auto-book-status.info {
+    background: rgba(255,255,255,0.2);
+  }
+
+  /* Calendar Styles */
+  .calendar-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .calendar-section.visible {
+    display: block;
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #1a237e, #283593);
+    color: white;
+  }
+
+  .calendar-header button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+
+  .calendar-header button:hover {
+    background: rgba(255,255,255,0.3);
+  }
+
+  .calendar-month-year {
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .calendar-grid {
+    padding: 8px;
+  }
+
+  .calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+
+  .calendar-weekday {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #666;
+    padding: 4px;
+  }
+
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: default;
+    background: #f5f5f5;
+    color: #999;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .calendar-day.current-month {
+    background: white;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+  }
+
+  .calendar-day.current-month:hover {
+    background: #f0f0ff;
+    border-color: #1a237e;
+  }
+
+  .calendar-day.available {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 2px solid #43a047;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .calendar-day.available:hover {
+    background: #c8e6c9;
+    transform: scale(1.05);
+  }
+
+  .calendar-day.selected {
+    background: #1a237e;
+    color: white;
+    border-color: #1a237e;
+  }
+
+  .calendar-day.today {
+    box-shadow: inset 0 0 0 2px #ff9800;
+  }
+
+  .calendar-day.empty {
+    background: transparent;
+    border: none;
+  }
+
+  .calendar-loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 12px;
+  }
+
+  .calendar-loading .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e0e0e0;
+    border-top-color: #1a237e;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .calendar-status {
+    padding: 8px 12px;
+    font-size: 11px;
+    text-align: center;
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .calendar-status.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .calendar-status.error {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  /* Time Slots Styles */
+  .timeslots-section {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    display: none;
+  }
+
+  .timeslots-section.visible {
+    display: block;
+  }
+
+  .timeslots-header {
+    padding: 10px 16px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .timeslots-header h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+
+  .timeslots-date {
+    font-size: 11px;
+    color: #1a237e;
+    font-weight: 600;
+  }
+
+  .timeslots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .timeslot-btn {
+    padding: 10px 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex: none;
+  }
+
+  .timeslot-btn:hover {
+    border-color: #1a237e;
+    background: #f0f0ff;
+  }
+
+  .timeslot-btn.selected {
+    background: #1a237e;
+    color: white;
+    border-color: #1a237e;
+  }
+
+  .timeslots-loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 12px;
+  }
+
+  .timeslots-empty {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 12px;
+  }
+
+  .selected-slot-info {
+    padding: 10px 16px;
+    background: #e8f5e9;
+    border-top: 1px solid #c8e6c9;
+    display: none;
+  }
+
+  .selected-slot-info.visible {
+    display: block;
+  }
+
+  .selected-slot-info .info-text {
+    font-size: 12px;
+    color: #2e7d32;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .selected-slot-info button {
+    width: 100%;
+  }
+
+  /* Booking Confirmation UI */
+  .booking-confirmation {
+    display: none;
+    background: white;
+    border: 2px solid #43a047;
+    border-radius: 12px;
+    margin-top: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(67, 160, 71, 0.3);
+    animation: slideIn 0.3s ease;
+  }
+
+  .booking-confirmation.visible {
+    display: block;
+  }
+
+  .booking-confirmation.error {
+    border-color: #e53935;
+    box-shadow: 0 4px 20px rgba(229, 57, 53, 0.3);
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .confirmation-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    color: white;
+  }
+
+  .booking-confirmation.error .confirmation-header {
+    background: linear-gradient(135deg, #e53935, #c62828);
+  }
+
+  .confirmation-icon {
+    font-size: 28px;
+  }
+
+  .confirmation-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .confirmation-body {
+    padding: 16px;
+  }
+
+  .confirm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .confirm-row:last-child {
+    border-bottom: none;
+  }
+
+  .confirm-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .confirm-value {
+    font-size: 13px;
+    color: #333;
+    font-weight: 600;
+    text-align: right;
+    max-width: 200px;
+    word-break: break-all;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .status-badge.success {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .status-badge.error {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .confirmation-footer {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+  }
+
+  .confirmation-footer button {
+    flex: 1;
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .console-hint {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #f5f5f5;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .console-hint .hint-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .console-hint .hint-text {
+    font-size: 10px;
+    color: #666;
+    line-height: 1.5;
+  }
+
+  .console-hint code {
+    background: #e8e8e8;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 9px;
+    color: #1a237e;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>VFS Slot Checker</h1>
+  <div class="sub">Login to VFS normally, then check slots here</div>
+</div>
+
+<div class="slots-alert" id="slotsAlert">
+  APPOINTMENT SLOTS AVAILABLE!
+</div>
+
+<!-- Auto-Book Progress Panel -->
+<div class="auto-book-panel" id="autoBookPanel">
+  <div class="auto-book-header">
+    <span class="auto-book-title">🤖 Auto-Book Mode</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="autoBookToggle">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="auto-book-progress" id="autoBookProgress">
+    <div class="progress-step" data-step="check">
+      <span class="step-icon">⏳</span>
+      <span class="step-text">Checking slots...</span>
+    </div>
+    <div class="progress-step" data-step="calendar">
+      <span class="step-icon">📅</span>
+      <span class="step-text">Getting dates...</span>
+    </div>
+    <div class="progress-step" data-step="timeslot">
+      <span class="step-icon">🕐</span>
+      <span class="step-text">Getting times...</span>
+    </div>
+    <div class="progress-step" data-step="otp">
+      <span class="step-icon">📱</span>
+      <span class="step-text">Sending OTP...</span>
+    </div>
+    <div class="progress-step waiting" data-step="otp-wait">
+      <span class="step-icon">✋</span>
+      <span class="step-text">Enter OTP below</span>
+    </div>
+    <div class="progress-step" data-step="book">
+      <span class="step-icon">✅</span>
+      <span class="step-text">Booking...</span>
+    </div>
+  </div>
+
+  <div class="auto-book-selected" id="autoBookSelected">
+    <div class="selected-info">
+      <span class="info-label">Date:</span>
+      <span class="info-value" id="autoSelectedDate">-</span>
+    </div>
+    <div class="selected-info">
+      <span class="info-label">Time:</span>
+      <span class="info-value" id="autoSelectedTime">-</span>
+    </div>
+  </div>
+
+  <div class="auto-book-otp" id="autoBookOtp">
+    <label>Enter OTP to complete booking:</label>
+    <div class="otp-input-row">
+      <input type="text" id="autoOtpInput" placeholder="123456" maxlength="6" pattern="[0-9]*">
+      <button class="btn-success" id="btnCompleteBooking">Book Now</button>
+    </div>
+  </div>
+
+  <div class="auto-book-status" id="autoBookStatus"></div>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot red" id="statusDot"></div>
+  <div style="flex:1">
+    <div class="status-text" id="statusText">Not connected</div>
+    <div class="status-email" id="statusEmail"></div>
+  </div>
+  <button class="btn-primary" id="btnSlots" style="padding:8px 16px;font-size:12px;" disabled>Check Slots</button>
+</div>
+
+<div class="section">
+  <!-- Tokens Display -->
+  <div class="tokens-section" id="tokensSection">
+    <div class="section-label">Authentication Tokens</div>
+
+    <div class="token-row">
+      <label>Source</label>
+      <div class="token-input-wrap">
+        <input type="text" id="tokenCS" readonly placeholder="Login to VFS to capture...">
+        <button class="copy-btn" data-copy="tokenCS" title="Copy"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+      </div>
+    </div>
+
+    <div class="token-row">
+      <label>Bearer</label>
+      <div class="token-input-wrap">
+        <input type="text" id="tokenAuth" readonly placeholder="Login to VFS to capture...">
+        <button class="copy-btn" data-copy="tokenAuth" title="Copy"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+      </div>
+    </div>
+
+    <div class="token-row">
+      <label>Route</label>
+      <div class="token-input-wrap">
+        <input type="text" id="tokenRoute" readonly placeholder="bgd/en/ita">
+        <button class="copy-btn" data-copy="tokenRoute" title="Copy"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+      </div>
+    </div>
+
+    <div class="token-row">
+      <label>ClientSource</label>
+      <div class="token-input-wrap">
+        <input type="text" id="tokenClientSource" readonly placeholder="Click Refresh to generate...">
+        <button class="copy-btn" data-copy="tokenClientSource" title="Copy"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+      </div>
+    </div>
+
+    <div class="token-actions" style="display:flex;gap:6px;margin-top:8px;">
+      <button class="btn-primary" id="btnRefreshToken" style="flex:1;font-size:10px;padding:6px;">Refresh Tokens</button>
+      <button class="btn-secondary" id="btnShowState" style="flex:1;font-size:10px;padding:6px;">Show Full State</button>
+    </div>
+
+  </div>
+
+  <div class="copied-toast" id="copiedToast">Copied!</div>
+  <div class="status-toast" id="statusToast">
+    <span class="toast-icon"></span>
+    <span class="toast-message"></span>
+  </div>
+
+  <!-- Visual Calendar (hidden until Check Slots clicked) -->
+  <div class="calendar-section" id="calendarSection">
+    <div class="calendar-header">
+      <button id="calPrev" title="Previous Month">&lt;</button>
+      <span class="calendar-month-year" id="calMonthYear">March 2026</span>
+      <button id="calNext" title="Next Month">&gt;</button>
+    </div>
+    <div class="calendar-loading" id="calendarLoading" style="display:none;">
+      <span class="spinner"></span> Loading...
+    </div>
+    <div class="calendar-grid">
+      <div class="calendar-weekdays">
+        <div class="calendar-weekday">Sun</div>
+        <div class="calendar-weekday">Mon</div>
+        <div class="calendar-weekday">Tue</div>
+        <div class="calendar-weekday">Wed</div>
+        <div class="calendar-weekday">Thu</div>
+        <div class="calendar-weekday">Fri</div>
+        <div class="calendar-weekday">Sat</div>
+      </div>
+      <div class="calendar-days" id="calendarDays"></div>
+    </div>
+    <div class="calendar-status" id="calendarStatus"></div>
+  </div>
+
+  <!-- Time Slots -->
+  <div class="timeslots-section" id="timeslotsSection">
+    <div class="timeslots-header">
+      <h4>Available Time Slots</h4>
+      <span class="timeslots-date" id="timeslotsDate"></span>
+    </div>
+    <div class="timeslots-loading" id="timeslotsLoading" style="display:none;">
+      <span class="spinner"></span> Loading time slots...
+    </div>
+    <div class="timeslots-grid" id="timeslotsGrid">
+      <!-- Time slots will be generated by JavaScript -->
+    </div>
+    <div class="timeslots-empty" id="timeslotsEmpty" style="display:none;">
+      No time slots available for this date
+    </div>
+    <div class="selected-slot-info" id="selectedSlotInfo">
+      <div class="info-text" id="selectedSlotText">Selected: March 15, 2026 at 09:30</div>
+      <button class="btn-success" id="btnProceedBooking">Proceed to Book This Slot</button>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="api-buttons">
+    <button class="btn-teal" id="qaCalendar">Calendar</button>
+    <button class="btn-blue" id="qaTimeslot">Time Slots</button>
+    <button class="btn-purple" id="qaSendOtp">Send OTP</button>
+    <button class="btn-purple" id="qaVerifyOtp">Verify OTP</button>
+    <button class="btn-orange" id="qaFees">Fees</button>
+    <button class="btn-indigo" id="qaAppInfo">App Info</button>
+    <button class="btn-success full-width" id="qaBook">📅 Book Appointment</button>
+  </div>
+
+  <!-- Booking Confirmation UI -->
+  <div class="booking-confirmation" id="bookingConfirmation">
+    <div class="confirmation-header">
+      <span class="confirmation-icon" id="confirmIcon">✅</span>
+      <span class="confirmation-title" id="confirmTitle">Booking Successful!</span>
+    </div>
+    <div class="confirmation-body">
+      <div class="confirm-row">
+        <span class="confirm-label">Status</span>
+        <span class="confirm-value status-badge" id="confirmStatus">SUCCESS</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Booking ID</span>
+        <span class="confirm-value" id="confirmBookingId">-</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Reference No.</span>
+        <span class="confirm-value" id="confirmRefNumber">-</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Date</span>
+        <span class="confirm-value" id="confirmDate">-</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Time</span>
+        <span class="confirm-value" id="confirmTime">-</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Center</span>
+        <span class="confirm-value" id="confirmCenter">-</span>
+      </div>
+      <div class="confirm-row">
+        <span class="confirm-label">Applicant</span>
+        <span class="confirm-value" id="confirmApplicant">-</span>
+      </div>
+      <div class="console-hint">
+        <span class="hint-icon">💡</span>
+        <span class="hint-text">To verify manually: Open DevTools (F12) → <strong>Network</strong> tab → Filter: <code>Fetch/XHR</code> → Click <code>schedule</code> request → See Response</span>
+      </div>
+    </div>
+    <div class="confirmation-footer">
+      <button class="btn-secondary" id="btnCloseConfirm">Close</button>
+      <button class="btn-primary" id="btnCopyConfirm">Copy Details</button>
+    </div>
+  </div>
+
+  <!-- Visual Report Section -->
+  <div class="report-section" id="reportSection">
+    <div class="report-header">
+      <span class="report-title">📋 Booking Report</span>
+      <button class="btn-close" id="btnCloseReport" title="Close">×</button>
+    </div>
+
+    <div class="report-info" id="reportInfo">
+      <!-- Booking info will be populated here -->
+    </div>
+
+    <div class="report-dates" id="reportDates">
+      <div class="report-subtitle">📅 Available Dates</div>
+      <div class="dates-grid" id="datesGrid">
+        <!-- Dates will be populated here -->
+      </div>
+    </div>
+
+    <div class="report-times" id="reportTimes">
+      <div class="report-subtitle">🕐 Time Slots <span class="selected-date" id="selectedDateLabel"></span></div>
+      <div class="times-grid" id="timesGrid">
+        <!-- Times will be populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Payload Configuration -->
+  <div class="payload-section" id="payloadSection">
+    <!-- Header with toggle + buttons -->
+    <div class="payload-header" id="payloadFieldsToggle">
+      <div class="title-toggle">
+        <svg viewBox="0 0 24 24" class="toggle-icon"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+        <span class="title">Payload Configuration</span>
+        <span class="capture-indicator" id="captureIndicator"></span>
+      </div>
+      <div class="actions" onclick="event.stopPropagation()">
+        <button class="btn-success" id="btnAutoCapture" title="Auto-capture from VFS page">Capture</button>
+        <button class="btn-secondary" id="btnSavePayload" title="Save configuration">Save</button>
+        <button class="btn-primary" id="btnJsonToggle" title="View/Edit JSON">JSON</button>
+      </div>
+    </div>
+
+    <div class="payload-body" id="payloadBody">
+      <div class="payload-grid">
+        <div class="payload-field">
+          <label>Country Code</label>
+          <input type="text" id="plCountry" placeholder="bgd" value="bgd">
+        </div>
+        <div class="payload-field">
+          <label>Mission Code</label>
+          <input type="text" id="plMission" placeholder="deu" value="">
+        </div>
+        <div class="payload-field">
+          <label>Center Code</label>
+          <input type="text" id="plCenter" placeholder="DAC" value="DAC">
+        </div>
+        <div class="payload-field">
+          <label>Visa Category</label>
+          <input type="text" id="plVisaCategory" placeholder="CV_for_OPH" value="">
+        </div>
+        <div class="payload-field full-width">
+          <label>Login User (Email)</label>
+          <input type="text" id="plLoginUser" placeholder="your@email.com" value="">
+        </div>
+        <div class="payload-field full-width">
+          <label>URN (Applicant Reference)</label>
+          <input type="text" id="plUrn" placeholder="XYZ71516959244" value="">
+        </div>
+        <div class="payload-field">
+          <label>Language</label>
+          <input type="text" id="plLanguage" placeholder="en-US" value="en-US">
+        </div>
+        <div class="payload-field">
+          <label>Date (DD/MM/YYYY)</label>
+          <input type="text" id="plDate" placeholder="01/03/2026" value="">
+        </div>
+        <div class="payload-field">
+          <label>Slot Time</label>
+          <input type="text" id="plSlotTime" placeholder="09:00" value="">
+        </div>
+        <div class="payload-field">
+          <label>Pay Code</label>
+          <input type="text" id="plPayCode" placeholder="" value="">
+        </div>
+        <div class="payload-field full-width" style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+          <label style="color:#1a237e;font-weight:700;">APPLICANT DETAILS</label>
+        </div>
+        <div class="payload-field">
+          <label>First Name</label>
+          <input type="text" id="plFirstName" placeholder="JOHN" value="">
+        </div>
+        <div class="payload-field">
+          <label>Last Name</label>
+          <input type="text" id="plLastName" placeholder="DOE" value="">
+        </div>
+        <div class="payload-field">
+          <label>Gender</label>
+          <select id="plGender">
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="payload-field">
+          <label>Date of Birth</label>
+          <input type="text" id="plDob" placeholder="DD/MM/YYYY" value="">
+        </div>
+        <div class="payload-field">
+          <label>Nationality</label>
+          <input type="text" id="plNationality" placeholder="Bangladeshi" value="">
+        </div>
+        <div class="payload-field">
+          <label>Passport Number</label>
+          <input type="text" id="plPassportNumber" placeholder="AB1234567" value="">
+        </div>
+        <div class="payload-field">
+          <label>Passport Expiry</label>
+          <input type="text" id="plPassportExpiry" placeholder="DD/MM/YYYY" value="">
+        </div>
+        <div class="payload-field">
+          <label>Contact Number</label>
+          <input type="text" id="plContactNumber" placeholder="+8801234567890" value="">
+        </div>
+        <div class="payload-field full-width" style="margin-top:8px;border-top:1px solid #eee;padding-top:8px;">
+          <label style="color:#1a237e;font-weight:700;">VERIFICATION</label>
+        </div>
+        <div class="payload-field full-width">
+          <label>OTP (6-digit)</label>
+          <input type="text" id="plOtp" placeholder="123456" value="">
+        </div>
+        <div class="payload-field">
+          <label>Captcha Version</label>
+          <input type="text" id="plCaptchaVersion" placeholder="" value="">
+        </div>
+        <div class="payload-field">
+          <label>Captcha API Key</label>
+          <input type="text" id="plCaptchaKey" placeholder="" value="">
+        </div>
+        <div class="payload-field full-width">
+          <label>Applicants (JSON Array)</label>
+          <textarea id="plApplicants" placeholder='[{"name": "...", "passport": "..."}]' rows="2" style="width:100%;font-size:10px;font-family:monospace;resize:vertical;padding:5px;border:1px solid #ddd;border-radius:3px;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- JSON Editor (hidden by default) -->
+    <div class="payload-json-editor" id="jsonEditor">
+      <textarea id="payloadJson" placeholder='{"countryCode": "bgd", ...}'></textarea>
+      <div class="payload-actions">
+        <button class="btn-secondary" id="btnJsonToFields">JSON → Fields</button>
+        <button class="btn-primary" id="btnFieldsToJson">Fields → JSON</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="padding-top:0">
+  <div class="last-check" id="lastCheck"></div>
+  <div class="result-box" id="resultBox"></div>
+</div>
+
+<div class="footer">
+  <button class="btn-danger" id="btnReset" style="flex:none;width:auto">Reset All</button>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
