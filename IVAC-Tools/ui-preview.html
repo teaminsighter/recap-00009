@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVAC Scripts UI Preview</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px;
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        h1 {
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        .label {
+            color: #e94560;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           SESSION KEEPER v1.1 STYLES
+           ══════════════════════════════════════════════════════════════ */
+        #ivacKeeper {
+            width: 360px;
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            font-size: 13px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .ik-header {
+            background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ik-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ik-header h3::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #4ade80;
+            animation: glow 2s ease-in-out infinite;
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px #4ade80; }
+            50% { box-shadow: 0 0 20px #4ade80, 0 0 30px #4ade80; }
+        }
+        .ik-minimize {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.2);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ik-status {
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .ik-status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 12px #4ade80;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+        .ik-status-text {
+            flex: 1;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .ik-status-text strong {
+            color: #fff;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .ik-content { padding: 16px; }
+        .ik-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .ik-section-title {
+            font-size: 10px;
+            color: #e94560;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        .ik-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .ik-input::placeholder { color: rgba(255,255,255,0.3); }
+        .ik-btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .ik-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+        .ik-btn.primary { background: linear-gradient(135deg, #e94560, #ff6b6b); }
+        .ik-btn.success { background: linear-gradient(135deg, #10b981, #34d399); }
+        .ik-btn.info { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .ik-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .ik-toggle-label {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        .ik-toggle-label small {
+            display: block;
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .ik-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-radius: 13px;
+            cursor: pointer;
+        }
+        .ik-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 26px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .ik-switch.off {
+            background: rgba(255,255,255,0.1);
+        }
+        .ik-switch.off::after {
+            left: 2px;
+        }
+        .ik-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .ik-stat {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .ik-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4ade80;
+            font-family: 'Courier New', monospace;
+        }
+        .ik-stat-label {
+            font-size: 9px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+        .ik-info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 11px;
+            color: #60a5fa;
+            margin-bottom: 12px;
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           PRO HELPER v2.0 STYLES
+           ══════════════════════════════════════════════════════════════ */
+        #ivacPanel {
+            width: 380px;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            border-radius: 16px;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-size: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        .ivac-header {
+            background: linear-gradient(135deg, #ff4d4d 0%, #ff6b35 100%);
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .ivac-header h3 { margin: 0; font-size: 15px; font-weight: 700; }
+        .ivac-version { font-size: 10px; opacity: 0.8; }
+        .ivac-minimize {
+            cursor: pointer;
+            font-size: 20px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.2);
+        }
+        .ivac-tabs {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .ivac-tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 11px;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+        }
+        .ivac-tab.active {
+            color: #ff6b35;
+            border-bottom-color: #ff6b35;
+            background: rgba(255,107,53,0.1);
+        }
+        .ivac-status-bar {
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+        }
+        .ivac-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: pulse2 1.5s infinite;
+        }
+        @keyframes pulse2 {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(76,175,80,0.5); }
+            50% { box-shadow: 0 0 0 6px transparent; }
+        }
+        .ivac-content {
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .ivac-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .ivac-section-title {
+            font-size: 10px;
+            color: #ff6b35;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .ivac-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .ivac-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-size: 13px;
+        }
+        .ivac-input::placeholder { color: rgba(255,255,255,0.3); }
+        .ivac-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            text-transform: uppercase;
+        }
+        .ivac-btn.orange { background: linear-gradient(135deg, #ff6b35, #ff4d4d); }
+        .ivac-btn.green { background: linear-gradient(135deg, #00c853, #00a844); }
+        .ivac-btn.blue { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .ivac-btn.purple { background: linear-gradient(135deg, #9c27b0, #7b1fa2); }
+        .ivac-btn.cyan { background: linear-gradient(135deg, #00bcd4, #0097a7); }
+        .ivac-btn.gray { background: linear-gradient(135deg, #607d8b, #455a64); }
+        .ivac-btn.full { width: 100%; }
+        .ivac-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .ivac-timer {
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255,107,53,0.2), rgba(255,77,77,0.2));
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-family: 'Courier New', monospace;
+            border: 1px solid rgba(255,107,53,0.3);
+        }
+        .ivac-log {
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 11px;
+            height: 100px;
+            color: #aaa;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+        .ivac-token-display {
+            background: rgba(0,0,0,0.5);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            color: #4caf50;
+            border: 1px solid rgba(76,175,80,0.3);
+        }
+        .ivac-stat {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .ivac-stat-value { font-size: 18px; font-weight: 700; color: #ff6b35; }
+        .ivac-stat-label { font-size: 9px; color: #666; text-transform: uppercase; margin-top: 4px; }
+        .ivac-label {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 6px;
+            display: block;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <h1>IVAC Scripts - UI Preview</h1>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SESSION KEEPER v1.1
+         ══════════════════════════════════════════════════════════════ -->
+    <div>
+        <div class="label">SESSION KEEPER v1.1 (Simple)</div>
+        <div id="ivacKeeper">
+            <div class="ik-header">
+                <h3>IVAC Session Keeper</h3>
+                <button class="ik-minimize">−</button>
+            </div>
+
+            <div class="ik-status">
+                <div class="ik-status-dot"></div>
+                <div class="ik-status-text">
+                    <strong>Session Protected</strong>
+                    <span>Server pings active</span>
+                </div>
+            </div>
+
+            <div class="ik-content">
+                <!-- CREDENTIALS -->
+                <div class="ik-section">
+                    <div class="ik-section-title">Your Credentials</div>
+                    <input type="email" class="ik-input" placeholder="Email Address">
+                    <input type="tel" class="ik-input" placeholder="Phone Number (optional)">
+                    <input type="password" class="ik-input" placeholder="Password">
+                    <input type="text" class="ik-input" placeholder="OTP Code" style="text-align:center; font-size:18px; letter-spacing:8px; margin-bottom:0;" maxlength="6">
+                    <div class="ik-btn-row">
+                        <button class="ik-btn info">Save</button>
+                        <button class="ik-btn primary">Fill Form</button>
+                        <button class="ik-btn" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); color:#000;">Fill OTP</button>
+                    </div>
+                    <div class="ik-btn-row">
+                        <button class="ik-btn success">Quick Login</button>
+                    </div>
+                </div>
+
+                <!-- SESSION CONTROL -->
+                <div class="ik-section">
+                    <div class="ik-section-title">Session Control</div>
+                    <div class="ik-info-box">
+                        <strong>How it works:</strong> Makes REAL requests to server every 60s to keep your session alive.
+                    </div>
+                    <div class="ik-toggle-row">
+                        <div class="ik-toggle-label">
+                            Server Ping (Real API calls)
+                            <small>Calls server every 60s - KEEPS SESSION ALIVE</small>
+                        </div>
+                        <div class="ik-switch"></div>
+                    </div>
+                    <div class="ik-toggle-row">
+                        <div class="ik-toggle-label">
+                            Auto Page Refresh
+                            <small>Refresh page every 5 min - MOST RELIABLE</small>
+                        </div>
+                        <div class="ik-switch off"></div>
+                    </div>
+                    <div class="ik-toggle-row">
+                        <div class="ik-toggle-label">
+                            Local Activity Simulation
+                            <small>Mouse/keyboard simulation (backup only)</small>
+                        </div>
+                        <div class="ik-switch off"></div>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div class="ik-section">
+                    <div class="ik-section-title">Session Stats</div>
+                    <div class="ik-stats">
+                        <div class="ik-stat">
+                            <div class="ik-stat-value">12:34</div>
+                            <div class="ik-stat-label">Session</div>
+                        </div>
+                        <div class="ik-stat">
+                            <div class="ik-stat-value">24</div>
+                            <div class="ik-stat-label">Server Pings</div>
+                        </div>
+                        <div class="ik-stat">
+                            <div class="ik-stat-value">48</div>
+                            <div class="ik-stat-label">Local Pings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         PRO HELPER v2.0
+         ══════════════════════════════════════════════════════════════ -->
+    <div>
+        <div class="label">PRO HELPER v2.0 (Advanced)</div>
+        <div id="ivacPanel">
+            <div class="ivac-header">
+                <div>
+                    <h3>IVAC Helper Pro</h3>
+                    <span class="ivac-version">v2.0 - Advanced Mode</span>
+                </div>
+                <span class="ivac-minimize">−</span>
+            </div>
+
+            <div class="ivac-status-bar">
+                <span class="ivac-status-dot"></span>
+                <span>Ready - All methods available</span>
+            </div>
+
+            <div class="ivac-tabs">
+                <button class="ivac-tab active">Main</button>
+                <button class="ivac-tab">API Login</button>
+                <button class="ivac-tab">Tokens</button>
+                <button class="ivac-tab">Schedule</button>
+            </div>
+
+            <div class="ivac-content">
+                <!-- MAIN TAB CONTENT -->
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Credentials</div>
+                    <div class="ivac-row">
+                        <input type="email" class="ivac-input" placeholder="Email Address">
+                    </div>
+                    <div class="ivac-row">
+                        <input type="tel" class="ivac-input" placeholder="Phone Number">
+                    </div>
+                    <div class="ivac-row">
+                        <input type="password" class="ivac-input" placeholder="Password">
+                    </div>
+                    <div class="ivac-row">
+                        <input type="text" class="ivac-input" placeholder="OTP Code" style="text-align:center; font-size:16px; letter-spacing:6px;" maxlength="6">
+                    </div>
+                    <div class="ivac-row">
+                        <button class="ivac-btn blue">Save</button>
+                        <button class="ivac-btn orange">Fill Form</button>
+                        <button class="ivac-btn green">Fill OTP</button>
+                    </div>
+                </div>
+
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Quick Actions</div>
+                    <div class="ivac-grid">
+                        <button class="ivac-btn green">Quick Login</button>
+                        <button class="ivac-btn cyan">Check API</button>
+                        <button class="ivac-btn purple">Keep Alive</button>
+                        <button class="ivac-btn gray">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Activity Log</div>
+                    <div class="ivac-log">
+                        <div>[10:30:45] IVAC Helper Pro v2.0 loaded!</div>
+                        <div>[10:30:45] Methods: Direct API | Token Reuse | Scheduled Login</div>
+                        <div>[10:30:48] Credentials saved!</div>
+                        <div>[10:31:02] Attempting direct API login...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         PRO HELPER - API TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div>
+        <div class="label">PRO HELPER - API Tab</div>
+        <div id="ivacPanel" style="height: auto;">
+            <div class="ivac-header">
+                <div>
+                    <h3>IVAC Helper Pro</h3>
+                    <span class="ivac-version">v2.0 - Advanced Mode</span>
+                </div>
+                <span class="ivac-minimize">−</span>
+            </div>
+
+            <div class="ivac-tabs">
+                <button class="ivac-tab">Main</button>
+                <button class="ivac-tab active">API Login</button>
+                <button class="ivac-tab">Tokens</button>
+                <button class="ivac-tab">Schedule</button>
+            </div>
+
+            <div class="ivac-content">
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Method 4: Direct API Login</div>
+                    <p style="color:#888;font-size:11px;margin-bottom:12px;">
+                        Bypass website, call API directly. Sometimes works when website shows "closed".
+                    </p>
+                    <div class="ivac-row">
+                        <input type="email" class="ivac-input" placeholder="Email">
+                    </div>
+                    <div class="ivac-row">
+                        <input type="password" class="ivac-input" placeholder="Password">
+                    </div>
+                    <div class="ivac-row">
+                        <button class="ivac-btn orange full">Direct API Login</button>
+                    </div>
+                </div>
+
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Rapid Fire Mode</div>
+                    <p style="color:#888;font-size:11px;margin-bottom:12px;">
+                        Send multiple login requests rapidly. Use when site is about to open.
+                    </p>
+                    <div class="ivac-row">
+                        <input type="number" class="ivac-input" value="10" style="width:60px;">
+                        <input type="number" class="ivac-input" value="200" placeholder="Delay ms" style="width:80px;">
+                        <button class="ivac-btn orange">Rapid Fire</button>
+                    </div>
+                    <div class="ivac-grid" style="margin-top:8px;">
+                        <div class="ivac-stat">
+                            <div class="ivac-stat-value">15</div>
+                            <div class="ivac-stat-label">Attempts</div>
+                        </div>
+                        <div class="ivac-stat">
+                            <div class="ivac-stat-value">1</div>
+                            <div class="ivac-stat-label">Success</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         PRO HELPER - SCHEDULE TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div>
+        <div class="label">PRO HELPER - Schedule Tab</div>
+        <div id="ivacPanel" style="height: auto;">
+            <div class="ivac-header">
+                <div>
+                    <h3>IVAC Helper Pro</h3>
+                    <span class="ivac-version">v2.0 - Advanced Mode</span>
+                </div>
+                <span class="ivac-minimize">−</span>
+            </div>
+
+            <div class="ivac-tabs">
+                <button class="ivac-tab">Main</button>
+                <button class="ivac-tab">API Login</button>
+                <button class="ivac-tab">Tokens</button>
+                <button class="ivac-tab active">Schedule</button>
+            </div>
+
+            <div class="ivac-content">
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Method 6: Scheduled Auto-Login</div>
+                    <p style="color:#888;font-size:11px;margin-bottom:12px;">
+                        Set exact time. Script will attempt login at that moment with rapid retries.
+                    </p>
+                    <div class="ivac-timer">00:04:32</div>
+                    <span class="ivac-label">Target Login Time</span>
+                    <div class="ivac-row">
+                        <input type="time" class="ivac-input" value="09:00:00">
+                        <button class="ivac-btn green">Set</button>
+                    </div>
+                </div>
+
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Schedule Settings</div>
+                    <span class="ivac-label">Start attempting (seconds before)</span>
+                    <div class="ivac-row">
+                        <input type="number" class="ivac-input" value="5">
+                    </div>
+                    <span class="ivac-label">Retry interval (milliseconds)</span>
+                    <div class="ivac-row">
+                        <input type="number" class="ivac-input" value="300">
+                    </div>
+                </div>
+
+                <div class="ivac-section">
+                    <div class="ivac-section-title">Schedule Control</div>
+                    <div class="ivac-row">
+                        <button class="ivac-btn orange full">Start Scheduled Login</button>
+                    </div>
+                    <div class="ivac-grid" style="margin-top:12px;">
+                        <div class="ivac-stat">
+                            <div class="ivac-stat-value">0</div>
+                            <div class="ivac-stat-label">Attempts</div>
+                        </div>
+                        <div class="ivac-stat">
+                            <div class="ivac-stat-value">WAITING</div>
+                            <div class="ivac-stat-label">Status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

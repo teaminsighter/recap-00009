@@ -1,0 +1,1157 @@
+// ==UserScript==
+// @name         Geo VFS Ultimate UI Panel
+// @namespace    http://tampermonkey.net/
+// @version      5.1
+// @description  Full Automation Panel (Tabs + Drag + Data) - Fixed Version
+// @match        *://*.vfsglobal.com/*
+// @match        *://visa.vfsglobal.com/*
+// @grant        none
+// ==/UserScript==
+
+(function () {
+    'use strict';
+
+    // =================== GLOBAL VARIABLES ===================
+    let globalURN = null;
+    let globalAuth = null;
+    let globalClientSource = null;
+    let globalRsaKey = null;
+    let globalCryptoKey = null;
+    let globalAllocationId = null;
+    let globalVASData = null;
+    let globalApplicationResponse = null;
+    let lastEmail = null;
+    let lastToken = null;
+    let WidgetId = null;
+    let autoInterval = null;
+    let selectedSlotDate = null;
+    let isReady = false;
+
+    // =================== UI PANEL ===================
+    const panel = document.createElement("div");
+    panel.style = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        width: 340px;
+        background: #0f172a;
+        color: #fff;
+        padding: 10px;
+        border-radius: 12px;
+        z-index: 999999;
+        font-family: sans-serif;
+        box-shadow: 0 0 15px rgba(0,0,0,0.6);
+    `;
+
+    panel.innerHTML = `
+        <!-- HEADER -->
+        <div id="header" style="display:flex; justify-content:space-between; cursor:move;">
+            <strong>⚡ GEO VFS Panel</strong>
+            <span id="closeBtn" style="cursor:pointer; color:red;">✖</span>
+        </div>
+
+        <!-- TABS -->
+        <div style="display:flex; margin-top:10px;">
+            <button id="tabAction" style="flex:1;">Action</button>
+            <button id="tabData" style="flex:1;">Data</button>
+        </div>
+
+        <!-- ACTION TAB -->
+        <div id="actionTab">
+
+            <textarea id="logBox" style="width:100%; height:90px; margin:8px 0;"></textarea>
+
+            <div style="display:flex; gap:5px;">
+                <button id="captchaBtn">Captcha</button>
+                <button id="startAllBtn">Start</button>
+                <button id="stopAllBtn">Stop</button>
+            </div>
+
+            <button id="captureBtn" style="width:100%; margin-top:5px; background:#22c55e;">Capture Token</button>
+
+            <button id="applicationBtn">Application</button>
+            <button id="fees1Btn">Fees-1</button>
+            <button id="sendOtpBtn">Send OTP</button>
+
+            <input id="otpInput" placeholder="OTP" style="width:100%;">
+            <button id="verifyOtpBtn">Verify OTP</button>
+
+            <input type="date" id="dateInput" style="width:100%;">
+            <button id="monthBtn">Date Month</button>
+
+            <div id="availableDatesContainer" style="max-height:100px; overflow-y:auto; margin:5px 0;"></div>
+            <input type="date" id="selectedDate" placeholder="Selected Date" style="width:100%;">
+            <button id="timeSlotBtn">Time Slot</button>
+
+            <div id="timeSlotsContainer" style="max-height:80px; overflow-y:auto; margin:5px 0;"></div>
+
+            <button id="fees2Btn">Fees-2</button>
+            <button id="mapvasBtn">Continue</button>
+            <button id="fees3Btn">Fees-3</button>
+
+            <button id="consentBtn">Review Pay</button>
+            <button id="scheduleBtn">Schedule Confirm</button>
+            <button id="confirmBtn">Appalment Confirm</button>
+        </div>
+
+        <!-- DATA TAB -->
+        <div id="dataTab" style="display:none; margin-top:8px;">
+
+            <input id="firstName" placeholder="First Name" style="width:100%;">
+            <input id="lastName" placeholder="Last Name" style="width:100%;">
+
+            <input type="date" id="dob" style="width:100%;">
+            <select id="gender" style="width:100%;">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+
+            <!-- Country Dropdown -->
+            <select id="country" style="width:100%;">
+                <option value="Bangladesh" selected>Bangladesh</option>
+                <option value="India">India</option>
+                <option value="Pakistan">Pakistan</option>
+                <option value="Nepal">Nepal</option>
+            </select>
+
+            <!-- Visa Category -->
+            <select id="visaCategory" style="width:100%;">
+                <option value="05" selected>Tourist (05)</option>
+                <option value="01">Business (01)</option>
+                <option value="02">Student (02)</option>
+                <option value="03">Work (03)</option>
+            </select>
+
+            <input id="passport" placeholder="Passport Number" style="width:100%;">
+
+            <input type="date" id="expiry" style="width:100%;">
+            <input id="gmail" placeholder="Gmail" style="width:100%;">
+            <input id="phone" placeholder="Phone" style="width:100%;">
+
+            <div style="display:flex; gap:5px;">
+                <button id="saveData">Save</button>
+                <button id="clearData">Clear</button>
+                <button id="loadData">Load</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(panel);
+
+    // =================== UI ELEMENTS ===================
+    const logBox = document.getElementById("logBox");
+    const actionTab = document.getElementById("actionTab");
+    const dataTab = document.getElementById("dataTab");
+
+    // =================== CLOSE BUTTON ===================
+    document.getElementById("closeBtn").onclick = () => panel.remove();
+
+    // =================== TABS ===================
+    document.getElementById("tabAction").onclick = () => {
+        actionTab.style.display = "block";
+        dataTab.style.display = "none";
+    };
+
+    document.getElementById("tabData").onclick = () => {
+        actionTab.style.display = "none";
+        dataTab.style.display = "block";
+    };
+
+    // =================== DRAGGING ===================
+    let isDragging = false, offsetX, offsetY;
+    const header = document.getElementById("header");
+
+    header.onmousedown = (e) => {
+        isDragging = true;
+        offsetX = e.clientX - panel.offsetLeft;
+        offsetY = e.clientY - panel.offsetTop;
+    };
+
+    document.onmousemove = (e) => {
+        if (isDragging) {
+            panel.style.left = (e.clientX - offsetX) + "px";
+            panel.style.top = (e.clientY - offsetY) + "px";
+            panel.style.right = "auto";
+        }
+    };
+
+    document.onmouseup = () => isDragging = false;
+
+    // =================== LOG FUNCTION ===================
+    const log = (msg) => {
+        logBox.value += msg + "\n";
+        logBox.scrollTop = logBox.scrollHeight;
+        console.log("[VFS Panel]", msg);
+    };
+
+    // =================== TOKEN CAPTURE ===================
+    function scanStorage() {
+        const storages = [sessionStorage, localStorage];
+
+        for (const storage of storages) {
+            try {
+                for (const key of Object.keys(storage)) {
+                    const value = storage.getItem(key);
+                    if (!value) continue;
+
+                    // RSA Key detection
+                    if (value.includes('MII') && value.length > 200 && !globalRsaKey) {
+                        let foundKey = value;
+                        try {
+                            const parsed = JSON.parse(value);
+                            if (typeof parsed === 'string' && parsed.includes('MII')) foundKey = parsed;
+                            else if (parsed?.rsaPublicKey) foundKey = parsed.rsaPublicKey;
+                        } catch (e) {}
+
+                        if (foundKey.includes('MII')) {
+                            globalRsaKey = foundKey;
+                            log("🔑 RSA Key captured!");
+                            importRsaKey(foundKey);
+                        }
+                    }
+
+                    // VFS Auth Token detection (starts with EAAAA or eyJ)
+                    if ((value.startsWith('EAAAA') || value.startsWith('eyJ')) && value.length > 100 && !globalAuth) {
+                        globalAuth = value;
+                        log("🎫 Auth Token captured! (" + value.substring(0, 10) + "...)");
+                    }
+
+                    // Email detection
+                    if (!lastEmail) {
+                        const emailMatch = value.match(/[\w.+-]+@[\w-]+\.[\w.-]+/);
+                        if (emailMatch) {
+                            lastEmail = emailMatch[0];
+                            document.getElementById("gmail").value = lastEmail;
+                            log("📧 Email found: " + lastEmail);
+                        }
+                    }
+
+                    // Try to find URN and other data
+                    try {
+                        const parsed = JSON.parse(value);
+                        if (parsed?.urn && !globalURN) {
+                            globalURN = parsed.urn;
+                            log("🆔 URN found: " + globalURN);
+                        }
+                    } catch (e) {}
+                }
+            } catch (e) {}
+        }
+
+        updateReadyStatus();
+    }
+
+    // Intercept fetch to capture headers
+    const originalFetch = window.fetch;
+    window.fetch = async function (...args) {
+        const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+
+        if (url.includes('lift-api') || url.includes('vfsglobal.com')) {
+            const headers = args[1]?.headers || {};
+
+            // Capture authorize header (VFS token starts with EAAAA)
+            const authHeader = headers['authorize'] || headers['Authorize'];
+            if (authHeader && authHeader.startsWith('EAAAA')) {
+                globalAuth = authHeader;
+                log("🎫 Auth captured: " + authHeader.substring(0, 15) + "...");
+                updateReadyStatus();
+            }
+
+            // Capture clientsource if available (for reference)
+            const csHeader = headers['clientsource'] || headers['Clientsource'];
+            if (csHeader && !globalClientSource) {
+                // Can use this as fallback if RSA generation fails
+                globalClientSource = csHeader;
+            }
+
+            // Capture from request body
+            if (args[1]?.body) {
+                try {
+                    const body = JSON.parse(args[1].body);
+                    if (body.urn && !globalURN) {
+                        globalURN = body.urn;
+                        log("🆔 URN captured: " + globalURN);
+                    }
+                    if (body.loginUser && !lastEmail) {
+                        lastEmail = body.loginUser;
+                        try { document.getElementById("gmail").value = lastEmail; } catch(e) {}
+                        log("📧 Email captured: " + lastEmail);
+                    }
+                } catch (e) {}
+            }
+        }
+
+        const res = await originalFetch.apply(this, args);
+
+        // Capture from response
+        if (url.includes('lift-api')) {
+            try {
+                const clone = res.clone();
+                const data = await clone.json();
+                if (data.urn && !globalURN) {
+                    globalURN = data.urn;
+                    log("🆔 URN from response: " + globalURN);
+                }
+            } catch (e) {}
+        }
+
+        return res;
+    };
+
+    async function importRsaKey(base64Key) {
+        try {
+            let cleaned = base64Key
+                .replace(/\|+/g, '')
+                .replace(/-----BEGIN.*?-----/g, '')
+                .replace(/-----END.*?-----/g, '')
+                .replace(/\s+/g, '')
+                .replace(/[^A-Za-z0-9+/=]/g, '');
+
+            const binaryStr = atob(cleaned);
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) {
+                bytes[i] = binaryStr.charCodeAt(i);
+            }
+
+            // Try SHA-256 first, then SHA-1
+            for (const hash of ['SHA-256', 'SHA-1']) {
+                try {
+                    globalCryptoKey = await crypto.subtle.importKey(
+                        'spki',
+                        bytes.buffer,
+                        { name: 'RSA-OAEP', hash },
+                        false,
+                        ['encrypt']
+                    );
+                    log("✅ RSA Key imported (" + hash + ")");
+                    updateReadyStatus();
+                    return;
+                } catch (e) {}
+            }
+            log("❌ RSA Key import failed");
+        } catch (err) {
+            log("❌ RSA Error: " + err.message);
+        }
+    }
+
+    function updateReadyStatus() {
+        isReady = !!(globalAuth && globalCryptoKey && lastEmail);
+        if (isReady) {
+            log("✅ Ready! All tokens captured.");
+        }
+    }
+
+    function captureCredentials() {
+        log("🔍 Scanning storage...");
+        scanStorage();
+
+        if (!isReady) {
+            const missing = [];
+            if (!globalAuth) missing.push("Auth Token");
+            if (!globalRsaKey) missing.push("RSA Key");
+            if (!lastEmail) missing.push("Email");
+            log("⚠️ Missing: " + missing.join(", "));
+            log("📌 Browse VFS pages to capture tokens automatically");
+        }
+    }
+
+    // =================== GENERATE CLIENT SOURCE ===================
+    function utcTimestamp() {
+        const now = new Date();
+        const p = n => String(n).padStart(2, '0');
+        return `${now.getUTCFullYear()}-${p(now.getUTCMonth() + 1)}-${p(now.getUTCDate())}T${p(now.getUTCHours())}:${p(now.getUTCMinutes())}:${p(now.getUTCSeconds())}`;
+    }
+
+    async function generateClientSource() {
+        if (!globalCryptoKey || !lastEmail) {
+            log("❌ Cannot generate ClientSource - missing RSA key or email");
+            return null;
+        }
+
+        try {
+            const ts = utcTimestamp();
+            const plaintext = lastEmail + ";" + ts;
+
+            const encoded = new TextEncoder().encode(plaintext);
+            const encrypted = await crypto.subtle.encrypt(
+                { name: "RSA-OAEP" },
+                globalCryptoKey,
+                encoded
+            );
+
+            return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+        } catch (err) {
+            log("❌ ClientSource generation failed: " + err.message);
+            return null;
+        }
+    }
+
+    // =================== GET HEADERS ===================
+    async function getHeaders() {
+        // Generate fresh clientSource for each request
+        let clientSource = await generateClientSource();
+
+        // Fallback to captured clientSource if generation failed
+        if (!clientSource && globalClientSource) {
+            clientSource = globalClientSource;
+            log("⚠️ Using captured clientSource (fallback)");
+        }
+
+        if (!globalAuth) {
+            log("⚠️ Auth token missing! Browse VFS pages first.");
+        }
+
+        if (!clientSource) {
+            log("⚠️ ClientSource missing! RSA key not captured.");
+        }
+
+        return {
+            "accept": "application/json, text/plain, */*",
+            "content-type": "application/json;charset=UTF-8",
+            "authorize": globalAuth || "",
+            "clientsource": clientSource || "",
+            "route": "bgd/en/ita"
+        };
+    }
+
+    // =================== APPLICATION ===================
+    async function application() {
+        log("📦 Sending Application Request...");
+
+        const gmail = document.getElementById("gmail");
+        const firstName = document.getElementById("firstName");
+        const lastName = document.getElementById("lastName");
+        const gender = document.getElementById("gender");
+        const passport = document.getElementById("passport");
+        const phone = document.getElementById("phone");
+        const expiry = document.getElementById("expiry");
+        const dob = document.getElementById("dob");
+
+        try {
+            const response = await fetch("https://lift-api.vfsglobal.com/appointment/applicants", {
+                method: "POST",
+                headers: await getHeaders(),
+                body: JSON.stringify({
+                    countryCode: "bgd",
+                    missionCode: "ita",
+                    centerCode: "DAC",
+                    loginUser: gmail.value,
+                    visaCategoryCode: document.getElementById("visaCategory").value || "05",
+                    isEdit: false,
+                    applicantList: [
+                        {
+                            firstName: firstName.value,
+                            lastName: lastName.value,
+                            gender: gender.value === "Male" ? 1 : 2,
+                            passportNumber: passport.value,
+                            contactNumber: phone.value,
+                            dialCode: "880",
+                            passportExpirtyDate: expiry.value,
+                            dateOfBirth: dob.value,
+                            emailId: gmail.value,
+                            nationalityCode: "BGD"
+                        }
+                    ],
+                    languageCode: "en-US"
+                }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+
+            log("✅ Response:");
+            log(JSON.stringify(data, null, 2));
+
+            if (data.urn) {
+                globalURN = data.urn;
+                log("🆔 URN Saved: " + globalURN);
+            } else {
+                log("⚠️ URN not found!");
+            }
+
+        } catch (err) {
+            log("❌ Error: " + err.message);
+        }
+    }
+
+    // =================== FEES ===================
+    async function fees() {
+        if (!globalURN) {
+            log("❌ URN not found! Run Application first");
+            return;
+        }
+
+        log("💰 Sending Fees Request...");
+
+        const gmail = document.getElementById("gmail");
+
+        try {
+            const response = await fetch("https://lift-api.vfsglobal.com/appointment/fees", {
+                method: "POST",
+                headers: await getHeaders(),
+                body: JSON.stringify({
+                    missionCode: "ita",
+                    countryCode: "bgd",
+                    centerCode: "DAC",
+                    loginUser: gmail.value,
+                    urn: globalURN,
+                    languageCode: "en-US"
+                }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+
+            log("💰 Fees Response Received");
+
+            if (data.error) {
+                log("❌ Fee Error: " + JSON.stringify(data.error));
+            } else {
+                log("📊 Total Amount: " + data.totalamount);
+                log("🏛️ Mission: " + data.mission);
+                log("🏢 Center: " + data.center);
+
+                if (!data.totalamount || data.totalamount === 0) {
+                    log("⚠️ No fee calculated (maybe missing selection step)");
+                }
+            }
+
+        } catch (err) {
+            log("❌ Fees Error: " + err.message);
+        }
+    }
+
+    // =================== SEND OTP ===================
+    async function sendOTP() {
+        if (!globalURN) {
+            log("❌ URN missing! Complete Application first");
+            return;
+        }
+
+        log("📩 Sending OTP request...");
+
+        const gmail = document.getElementById("gmail");
+
+        try {
+            const response = await fetch("https://lift-api.vfsglobal.com/appointment/applicantotp", {
+                method: "POST",
+                headers: {
+                    ...(await getHeaders()),
+                    "datacenter": "GERMANY"
+                },
+                body: JSON.stringify({
+                    urn: globalURN,
+                    loginUser: gmail.value,
+                    missionCode: "ita",
+                    countryCode: "bgd",
+                    centerCode: "DAC",
+                    captcha_version: "",
+                    captcha_api_key: "",
+                    OTP: "",
+                    otpAction: "GENERATE",
+                    languageCode: "en-US",
+                    userAction: null
+                }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+
+            log("📩 OTP Status:");
+
+            if (data.isOTPGenerated) {
+                log("✅ OTP Sent Successfully");
+                log("📲 Delivery: " + data.otpDeliveryMethods);
+                log("⏳ Expiry: " + data.otpExpiryInMinutes + " minutes");
+                log("🔁 Remaining Attempts: " + data.remainingOTPLimit);
+            } else {
+                log("❌ OTP Not Generated");
+            }
+
+            if (data.error) {
+                log("⚠️ Error: " + JSON.stringify(data.error));
+            }
+
+        } catch (err) {
+            log("❌ OTP Error: " + err.message);
+        }
+    }
+
+    // =================== VERIFY OTP ===================
+    async function verifyOTP() {
+        if (!globalURN) {
+            log("❌ URN missing!");
+            return;
+        }
+
+        const otpInput = document.getElementById("otpInput");
+        const gmail = document.getElementById("gmail");
+
+        if (!otpInput.value) {
+            log("❌ OTP required!");
+            return;
+        }
+
+        log("🔐 Verifying OTP...");
+
+        try {
+            const response = await fetch("https://lift-api.vfsglobal.com/appointment/applicantotp", {
+                method: "POST",
+                headers: {
+                    ...(await getHeaders()),
+                    "datacenter": "GERMANY"
+                },
+                body: JSON.stringify({
+                    urn: globalURN,
+                    loginUser: gmail.value,
+                    missionCode: "ita",
+                    countryCode: "bgd",
+                    centerCode: "DAC",
+                    captcha_version: "",
+                    captcha_api_key: "",
+                    OTP: otpInput.value,
+                    otpAction: "VALIDATE",
+                    languageCode: "en-US",
+                    userAction: null
+                }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+
+            log("🔐 OTP Verification Status:");
+
+            if (data.isOTPValidated) {
+                log("✅ OTP Verified Successfully");
+            } else {
+                log("❌ OTP Not Valid");
+            }
+
+            if (!data.isOTPGenerated) {
+                log("ℹ️ OTP is no longer active (consumed or expired)");
+            }
+
+            log("🔁 Remaining Attempts: " + data.remainingOTPLimit);
+
+        } catch (err) {
+            log("❌ OTP Verify Error: " + err.message);
+        }
+    }
+
+    // =================== CALENDAR ===================
+    async function calendar() {
+        if (!globalURN) {
+            log("❌ URN missing! Complete Application first");
+            return;
+        }
+
+        log("📅 Loading calendar...");
+
+        const gmail = document.getElementById("gmail");
+        const dateInput = document.getElementById("dateInput");
+        const visaCategory = document.getElementById("visaCategory");
+
+        try {
+            const res = await fetch("https://lift-api.vfsglobal.com/appointment/calendar", {
+                method: "POST",
+                headers: await getHeaders(),
+                body: JSON.stringify({
+                    countryCode: "bgd",
+                    missionCode: "ita",
+                    centerCode: "DAC",
+                    loginUser: gmail.value,
+                    visaCategoryCode: visaCategory.value || "05",
+                    fromDate: dateInput.value || new Date().toISOString().slice(0, 10),
+                    urn: globalURN,
+                    payCode: ""
+                }),
+                credentials: "include"
+            });
+
+            const data = await res.json();
+
+            log("📨 Calendar Loaded");
+
+            renderAvailableDates(data);
+
+        } catch (err) {
+            log("❌ Calendar Error: " + err.message);
+        }
+    }
+
+    // =================== RENDER AVAILABLE DATES ===================
+    function renderAvailableDates(data) {
+        const container = document.getElementById("availableDatesContainer");
+        container.innerHTML = "";
+
+        if (!data.calendars || data.calendars.length === 0) {
+            container.innerHTML = "<span style='color:red;'>❌ No available dates</span>";
+            return;
+        }
+
+        // Remove duplicates
+        let uniqueDates = [...new Set(data.calendars.map(d => d.date))];
+        uniqueDates.sort((a, b) => new Date(a) - new Date(b));
+
+        uniqueDates.forEach(date => {
+            let btn = document.createElement("button");
+            btn.innerText = date;
+            btn.style = "margin:2px; padding:5px; cursor:pointer;";
+
+            btn.onclick = () => {
+                selectedSlotDate = date;
+                document.getElementById("selectedDate").value = date;
+                log("📅 Selected: " + date);
+            };
+
+            container.appendChild(btn);
+        });
+
+        log("📅 " + uniqueDates.length + " dates rendered");
+    }
+
+    // =================== TIME SLOT ===================
+    async function appointmentDate() {
+        if (!globalURN) {
+            log("❌ URN missing! Complete Application first");
+            return;
+        }
+
+        const slotDate = selectedSlotDate || document.getElementById("selectedDate").value;
+
+        if (!slotDate) {
+            log("❌ Select a date first!");
+            return;
+        }
+
+        log("🕒 Loading time slots for: " + slotDate);
+
+        const gmail = document.getElementById("gmail");
+        const visaCategory = document.getElementById("visaCategory");
+
+        try {
+            const res = await fetch("https://lift-api.vfsglobal.com/appointment/timeslot", {
+                method: "POST",
+                headers: await getHeaders(),
+                body: JSON.stringify({
+                    countryCode: "bgd",
+                    missionCode: "ita",
+                    centerCode: "DAC",
+                    loginUser: gmail.value,
+                    visaCategoryCode: visaCategory.value || "05",
+                    slotDate: slotDate,
+                    urn: globalURN
+                }),
+                credentials: "include"
+            });
+
+            const data = await res.json();
+
+            log("📨 Time Slot Response:");
+            log(JSON.stringify(data, null, 2));
+
+            renderTimeSlots(data);
+
+        } catch (err) {
+            log("❌ Time slot request failed: " + err.message);
+        }
+    }
+
+    // =================== RENDER TIME SLOTS ===================
+    function renderTimeSlots(data) {
+        const container = document.getElementById("timeSlotsContainer");
+        container.innerHTML = "";
+
+        if (!data.slots || data.slots.length === 0) {
+            container.innerHTML = "<span style='color:red;'>❌ No slots available</span>";
+            return;
+        }
+
+        data.slots.forEach(slot => {
+            let btn = document.createElement("button");
+            btn.innerText = slot.time || slot.slotTime || JSON.stringify(slot);
+            btn.style = "margin:2px; padding:5px; cursor:pointer;";
+
+            btn.onclick = () => {
+                globalAllocationId = slot.allocationId;
+                log("🎯 Allocation ID: " + globalAllocationId);
+            };
+
+            container.appendChild(btn);
+        });
+
+        // Auto-select last slot
+        const lastSlot = data.slots[data.slots.length - 1];
+        if (lastSlot && lastSlot.allocationId) {
+            globalAllocationId = lastSlot.allocationId;
+            log("🎯 Last Allocation ID Saved: " + globalAllocationId);
+        }
+    }
+
+    // =================== MAP VAS ===================
+    async function loadMapVAS() {
+        log("🧩 Loading MapVAS...");
+
+        const gmail = document.getElementById("gmail");
+
+        try {
+            const payload = {
+                loginuser: gmail.value,
+                missioncode: "ita",
+                countrycode: "bgd",
+                urn: globalURN,
+                applicants: []
+            };
+
+            const res = await fetch("https://lift-api.vfsglobal.com/vas/mapvas", {
+                method: "POST",
+                credentials: "include",
+                headers: await getHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            log("🧩 MAPVAS Response:");
+            log(JSON.stringify(data, null, 2));
+
+            globalVASData = data;
+
+            if (data.error === null) {
+                log("✅ VAS loaded successfully");
+            } else {
+                log("❌ Error: " + JSON.stringify(data.error));
+            }
+
+        } catch (err) {
+            log("🔥 MAPVAS Error: " + err.message);
+        }
+    }
+
+    // =================== SCHEDULE ===================
+    async function schedule() {
+        if (!globalURN) {
+            log("❌ URN missing! Complete Application first");
+            return;
+        }
+
+        if (!globalAllocationId) {
+            log("❌ Allocation ID missing! Select a time slot first");
+            return;
+        }
+
+        log("📅 Scheduling appointment...");
+
+        const gmail = document.getElementById("gmail");
+
+        try {
+            const payload = {
+                missionCode: "ita",
+                countryCode: "bgd",
+                centerCode: "DAC",
+                loginUser: gmail.value,
+                urn: globalURN,
+                aurn: null,
+                notificationType: "none",
+                paymentdetails: {
+                    paymentmode: "Vac",
+                    RequestRefNo: "",
+                    clientId: "",
+                    merchantId: "",
+                    amount: 0,
+                    currency: "BDT"
+                },
+                allocationId: globalAllocationId,
+                CanVFSReachoutToApplicant: true,
+                TnCConsentAndAcceptance: true
+            };
+
+            const res = await fetch("https://lift-api.vfsglobal.com/appointment/schedule", {
+                method: "POST",
+                credentials: "include",
+                headers: await getHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            log("🎯 Schedule Response:");
+            log(JSON.stringify(data, null, 2));
+
+            if (data.error === null) {
+                log("✅ Appointment Booked Successfully!");
+            } else {
+                log("❌ Booking Failed: " + JSON.stringify(data.error));
+            }
+
+        } catch (err) {
+            log("🔥 Schedule Error: " + err.message);
+        }
+    }
+
+    // =================== SEND CONSENT ===================
+    async function sendConsent() {
+        log("📜 Sending consent...");
+
+        scanSession();
+
+        const gmail = document.getElementById("gmail");
+
+        if (!lastToken) {
+            log("⚠️ Token not found in session, trying to proceed anyway...");
+        }
+
+        try {
+            const response = await fetch("https://vfsglobal-privacy.my.onetrust.com/request/v1/consentreceipts", {
+                method: "POST",
+                headers: {
+                    "accept": "*/*",
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    requestInformation: lastToken || "",
+                    identifier: gmail.value,
+                    language: null,
+                    purposes: [
+                        { Id: "5dac333a-b947-4f47-a1eb-4140bc27ff7c" },
+                        { Id: "42bad10d-916e-401f-9197-68d757a4ee8a" }
+                    ],
+                    dsDataElements: {
+                        URL: "https://visa.vfsglobal.com/bgd/en/ita/review-pay",
+                        FullName: document.getElementById("firstName").value + " " + document.getElementById("lastName").value,
+                        PatronymicName: ""
+                    }
+                })
+            });
+
+            if (response.ok) {
+                log("✅ Consent Sent Successfully");
+            } else {
+                log("⚠️ Consent response: " + response.status);
+            }
+
+        } catch (err) {
+            log("❌ Consent Error: " + err.message);
+        }
+    }
+
+    // =================== CONFIRM APPLICATION ===================
+    async function confirmApplication() {
+        log("📌 Confirming application...");
+
+        const gmail = document.getElementById("gmail");
+
+        try {
+            const payload = {
+                countryCode: "bgd",
+                missionCode: "ita",
+                loginUser: gmail.value,
+                urn: globalURN,
+                aurn: "",
+                emailId: gmail.value,
+                countactNumber: document.getElementById("phone").value,
+                passportNumber: document.getElementById("passport").value
+            };
+
+            const res = await fetch("https://lift-api.vfsglobal.com/appointment/application", {
+                method: "POST",
+                credentials: "include",
+                headers: await getHeaders(),
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+
+            log("📌 Application Response:");
+            log(JSON.stringify(data, null, 2));
+
+            globalApplicationResponse = data;
+
+            if (data.error === null) {
+                log("✅ Application Step Completed");
+            } else {
+                log("❌ Error: " + JSON.stringify(data.error));
+            }
+
+        } catch (err) {
+            log("🔥 Application Error: " + err.message);
+        }
+    }
+
+    // =================== CAPTCHA ===================
+    function onCaptchaSuccess(token) {
+        log("✅ Captcha solved!");
+        log("🎫 Token: " + token.substring(0, 50) + "...");
+        window.captchaToken = token;
+    }
+
+    function renderCaptcha() {
+        log("🧩 Rendering captcha...");
+
+        if (!window.turnstile) {
+            log("⚠️ Turnstile not loaded yet, loading script...");
+            const script = document.createElement('script');
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                log("✅ Turnstile script loaded");
+                setTimeout(renderCaptcha, 500);
+            };
+            document.head.appendChild(script);
+            return;
+        }
+
+        const captchaDiv = document.getElementById("CaptchaContainer");
+        if (!captchaDiv) {
+            log("❌ CaptchaContainer not found on page");
+            return;
+        }
+
+        const targetDiv = captchaDiv.querySelector("div:nth-child(1)");
+        if (!targetDiv) {
+            log("❌ Captcha target div not found");
+            return;
+        }
+
+        targetDiv.style.display = 'block';
+
+        if (WidgetId !== null) {
+            window.turnstile.remove(WidgetId);
+            WidgetId = null;
+        }
+
+        WidgetId = window.turnstile.render(targetDiv, {
+            sitekey: '0x4AAAAAACghKkJHL1t7UkuZ',
+            callback: onCaptchaSuccess,
+            theme: 'light'
+        });
+
+        log("✅ Captcha rendered");
+    }
+
+    // =================== AUTO CHECK ===================
+    function startAuto() {
+        if (autoInterval) {
+            log("⚠️ Auto-check already running");
+            return;
+        }
+
+        log("🚀 Starting auto-check...");
+
+        autoInterval = setInterval(async () => {
+            log("🔄 Auto-checking calendar...");
+            await calendar();
+        }, 30000); // 30 seconds
+
+        log("✅ Auto-check started (30s interval)");
+    }
+
+    function stopAuto() {
+        if (autoInterval) {
+            clearInterval(autoInterval);
+            autoInterval = null;
+            log("⛔ Auto-check stopped");
+        } else {
+            log("ℹ️ No auto-check running");
+        }
+    }
+
+    // =================== SAVE/LOAD DATA ===================
+    document.getElementById("saveData").onclick = () => {
+        const data = {
+            firstName: document.getElementById("firstName").value,
+            lastName: document.getElementById("lastName").value,
+            dob: document.getElementById("dob").value,
+            gender: document.getElementById("gender").value,
+            country: document.getElementById("country").value,
+            visaCategory: document.getElementById("visaCategory").value,
+            passport: document.getElementById("passport").value,
+            expiry: document.getElementById("expiry").value,
+            gmail: document.getElementById("gmail").value,
+            phone: document.getElementById("phone").value
+        };
+        localStorage.setItem("vfsData", JSON.stringify(data));
+        log("💾 Data Saved ✅");
+    };
+
+    document.getElementById("clearData").onclick = () => {
+        localStorage.removeItem("vfsData");
+        log("🧹 Data Cleared ❌");
+    };
+
+    document.getElementById("loadData").onclick = () => {
+        const saved = localStorage.getItem("vfsData");
+        if (saved) {
+            const data = JSON.parse(saved);
+            document.getElementById("firstName").value = data.firstName || "";
+            document.getElementById("lastName").value = data.lastName || "";
+            document.getElementById("dob").value = data.dob || "";
+            document.getElementById("gender").value = data.gender || "Male";
+            document.getElementById("country").value = data.country || "Bangladesh";
+            document.getElementById("visaCategory").value = data.visaCategory || "05";
+            document.getElementById("passport").value = data.passport || "";
+            document.getElementById("expiry").value = data.expiry || "";
+            document.getElementById("gmail").value = data.gmail || "";
+            document.getElementById("phone").value = data.phone || "";
+            log("📂 Data Loaded ✅");
+        } else {
+            log("⚠️ No saved data found");
+        }
+    };
+
+    // =================== EVENT LISTENERS ===================
+    document.getElementById("captureBtn").addEventListener("click", captureCredentials);
+    document.getElementById("applicationBtn").addEventListener("click", application);
+    document.getElementById("fees1Btn").addEventListener("click", fees);
+    document.getElementById("sendOtpBtn").addEventListener("click", sendOTP);
+    document.getElementById("verifyOtpBtn").addEventListener("click", verifyOTP);
+    document.getElementById("monthBtn").addEventListener("click", calendar);
+    document.getElementById("timeSlotBtn").addEventListener("click", appointmentDate);
+    document.getElementById("fees2Btn").addEventListener("click", fees);
+    document.getElementById("mapvasBtn").addEventListener("click", loadMapVAS);
+    document.getElementById("fees3Btn").addEventListener("click", fees);
+    document.getElementById("consentBtn").addEventListener("click", sendConsent);
+    document.getElementById("scheduleBtn").addEventListener("click", schedule);
+    document.getElementById("confirmBtn").addEventListener("click", confirmApplication);
+    document.getElementById("startAllBtn").addEventListener("click", startAuto);
+    document.getElementById("stopAllBtn").addEventListener("click", stopAuto);
+    document.getElementById("captchaBtn").addEventListener("click", renderCaptcha);
+
+    // =================== AUTO-LOAD SAVED DATA ===================
+    window.addEventListener("load", () => {
+        const saved = localStorage.getItem("vfsData");
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                document.getElementById("firstName").value = data.firstName || "";
+                document.getElementById("lastName").value = data.lastName || "";
+                document.getElementById("dob").value = data.dob || "";
+                document.getElementById("gender").value = data.gender || "Male";
+                document.getElementById("country").value = data.country || "Bangladesh";
+                document.getElementById("visaCategory").value = data.visaCategory || "05";
+                document.getElementById("passport").value = data.passport || "";
+                document.getElementById("expiry").value = data.expiry || "";
+                document.getElementById("gmail").value = data.gmail || "";
+                document.getElementById("phone").value = data.phone || "";
+                log("📂 Saved data auto-loaded");
+            } catch (e) {}
+        }
+
+        // Attempt to capture credentials on load
+        setTimeout(captureCredentials, 2000);
+    });
+
+    // Periodic token scan (every 3 seconds)
+    setInterval(() => {
+        if (!isReady) {
+            scanStorage();
+        }
+    }, 3000);
+
+    // Initial scan
+    scanStorage();
+
+    log("⚡ GEO VFS Panel v5.2 loaded");
+
+})();

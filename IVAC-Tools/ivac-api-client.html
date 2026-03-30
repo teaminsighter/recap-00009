@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVAC Direct API Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .warning-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            color: #fbbf24;
+            font-size: 13px;
+        }
+
+        .warning-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #e94560;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: #e94560;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: #fff;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            color: #fff;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #000;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: #fff;
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .status-dot.success {
+            background: #4ade80;
+            box-shadow: 0 0 15px #4ade80;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.error {
+            background: #f87171;
+            box-shadow: 0 0 15px #f87171;
+        }
+
+        .status-dot.loading {
+            background: #fbbf24;
+            box-shadow: 0 0 15px #fbbf24;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-text strong {
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .status-text small {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .log-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 16px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .log-time {
+            color: #64748b;
+        }
+
+        .log-success { color: #4ade80; }
+        .log-error { color: #f87171; }
+        .log-warning { color: #fbbf24; }
+        .log-info { color: #60a5fa; }
+
+        .response-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: #4ade80;
+            border: 1px solid rgba(76, 175, 80, 0.2);
+        }
+
+        .response-box.error {
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .token-display {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            word-break: break-all;
+            color: #4ade80;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .token-display.empty {
+            color: #64748b;
+        }
+
+        .schedule-timer {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(255, 107, 107, 0.1));
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+
+        .schedule-timer.urgent {
+            color: #ff4444;
+            animation: blink 0.3s infinite;
+        }
+
+        .schedule-timer.success {
+            color: #4ade80;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.1));
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e94560;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: #94a3b8;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #e94560, #ff6b6b);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .cors-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #60a5fa;
+        }
+
+        .cors-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IVAC Direct API Client</h1>
+        <p class="subtitle">Access IVAC API without opening the website</p>
+
+        <div class="warning-box">
+            <strong>Important Notes:</strong>
+            • This tool calls IVAC API directly - no need to open their website<br>
+            • CORS may block requests from browser - use the Node.js version for guaranteed access<br>
+            • Save this file locally and open in browser, or run the Node.js script
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-dot" id="statusDot"></div>
+            <div class="status-text">
+                <strong id="statusTitle">Ready</strong>
+                <small id="statusDesc">Enter credentials and try login</small>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="login">Login</button>
+            <button class="tab" data-tab="schedule">Scheduled</button>
+            <button class="tab" data-tab="token">Token</button>
+            <button class="tab" data-tab="logs">Logs</button>
+        </div>
+
+        <!-- LOGIN TAB -->
+        <div class="tab-content active" id="tabLogin">
+            <div class="card">
+                <div class="card-title">API Login</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="inputEmail" placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="inputPassword" placeholder="Your password">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-info" id="btnSave">Save Credentials</button>
+                    <button class="btn btn-primary" id="btnLogin">API Login</button>
+                    <button class="btn btn-success" id="btnCheckAPI">Check API Status</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Rapid Fire Login</div>
+                <p style="color:#94a3b8;font-size:12px;margin-bottom:16px;">
+                    Send multiple login attempts rapidly. Use when site is about to open.
+                </p>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Number of Attempts</label>
+                        <input type="number" id="rapidCount" value="20" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Delay Between (ms)</label>
+                        <input type="number" id="rapidDelay" value="200" min="50" max="5000">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-danger" id="btnRapidFire">Start Rapid Fire</button>
+                    <button class="btn btn-warning" id="btnStopRapid" disabled>Stop</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="statAttempts">0</div>
+                        <div class="stat-label">Attempts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statSuccess">0</div>
+                        <div class="stat-label">Success</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="statFailed">0</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="stat503">0</div>
+                        <div class="stat-label">503 Errors</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">API Response</div>
+                <div class="response-box" id="responseBox">Response will appear here...</div>
+            </div>
+        </div>
+
+        <!-- SCHEDULE TAB -->
+        <div class="tab-content" id="tabSchedule">
+            <div class="card">
+                <div class="card-title">Scheduled Auto-Login</div>
+                <p style="color:#94a3b8;font-size:12px;margin-bottom:20px;">
+                    Set exact time to start login attempts. Perfect for when you know when site opens.
+                </p>
+
+                <div class="schedule-timer" id="scheduleTimer">--:--:--</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Target Time</label>
+                        <input type="time" id="scheduleTime" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Before (seconds)</label>
+                        <input type="number" id="scheduleOffset" value="5" min="0" max="60">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Retry Interval (ms)</label>
+                        <input type="number" id="scheduleInterval" value="300" min="100" max="5000">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (seconds)</label>
+                        <input type="number" id="scheduleDuration" value="120" min="10" max="600">
+                    </div>
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-success" id="btnStartSchedule">Start Schedule</button>
+                    <button class="btn btn-danger" id="btnStopSchedule" disabled>Stop Schedule</button>
+                </div>
+
+                <div class="stats-grid" style="margin-top:20px;">
+                    <div class="stat-box">
+                        <div class="stat-value" id="schedAttempts">0</div>
+                        <div class="stat-label">Attempts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="schedStatus">IDLE</div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOKEN TAB -->
+        <div class="tab-content" id="tabToken">
+            <div class="card">
+                <div class="card-title">Token Management</div>
+
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label>Current Auth Token</label>
+                    <div class="token-display" id="tokenDisplay">No token captured yet...</div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label>Manual Token Input</label>
+                    <input type="text" id="manualToken" placeholder="Paste token here...">
+                </div>
+
+                <div class="btn-row">
+                    <button class="btn btn-info" id="btnSaveToken">Save Token</button>
+                    <button class="btn btn-success" id="btnTestToken">Test Token</button>
+                    <button class="btn btn-danger" id="btnClearToken">Clear</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Token Info</div>
+                <div class="response-box" id="tokenInfo">Token details will appear here...</div>
+            </div>
+        </div>
+
+        <!-- LOGS TAB -->
+        <div class="tab-content" id="tabLogs">
+            <div class="card">
+                <div class="card-title">Activity Log</div>
+                <div class="log-box" id="logBox"></div>
+                <div class="btn-row" style="margin-top:16px;">
+                    <button class="btn btn-warning" id="btnClearLogs">Clear Logs</button>
+                    <button class="btn btn-info" id="btnExportLogs">Export Logs</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ════════════════════════════════════════════════════════════
+        //  CONFIGURATION
+        // ════════════════════════════════════════════════════════════
+        const API_BASE = 'https://api.ivacbd.com';
+        const CORS_PROXIES = [
+            '', // Try direct first
+            'https://corsproxy.io/?',
+            'https://api.allorigins.win/raw?url=',
+            'https://cors-anywhere.herokuapp.com/'
+        ];
+
+        let currentProxyIndex = 0;
+
+        // ════════════════════════════════════════════════════════════
+        //  STATE
+        // ════════════════════════════════════════════════════════════
+        let state = {
+            email: '',
+            password: '',
+            authToken: '',
+            refreshToken: '',
+            isRapidRunning: false,
+            isScheduleRunning: false
+        };
+
+        // Load saved state
+        try {
+            const saved = JSON.parse(localStorage.getItem('ivacAPIClient') || '{}');
+            state.email = saved.email || '';
+            state.password = saved.password ? atob(saved.password) : '';
+            state.authToken = saved.authToken || '';
+        } catch (e) {}
+
+        // ════════════════════════════════════════════════════════════
+        //  UI HELPERS
+        // ════════════════════════════════════════════════════════════
+        const $ = id => document.getElementById(id);
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const logBox = $('logBox');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-${type}">${msg}</span>`;
+            logBox.insertBefore(entry, logBox.firstChild);
+            console.log(`[IVAC API] ${msg}`);
+        }
+
+        function updateStatus(title, desc, dotClass = '') {
+            $('statusTitle').textContent = title;
+            $('statusDesc').textContent = desc;
+            $('statusDot').className = 'status-dot ' + dotClass;
+        }
+
+        function showResponse(data, isError = false) {
+            const box = $('responseBox');
+            box.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            box.className = 'response-box' + (isError ? ' error' : '');
+        }
+
+        function saveState() {
+            localStorage.setItem('ivacAPIClient', JSON.stringify({
+                email: state.email,
+                password: btoa(state.password || ''),
+                authToken: state.authToken
+            }));
+        }
+
+        function loadUI() {
+            $('inputEmail').value = state.email;
+            $('inputPassword').value = state.password;
+            updateTokenDisplay();
+        }
+
+        function updateTokenDisplay() {
+            const display = $('tokenDisplay');
+            if (state.authToken) {
+                display.textContent = state.authToken;
+                display.classList.remove('empty');
+
+                // Decode JWT
+                try {
+                    const parts = state.authToken.split('.');
+                    if (parts.length === 3) {
+                        const payload = JSON.parse(atob(parts[1]));
+                        $('tokenInfo').textContent = JSON.stringify(payload, null, 2);
+
+                        if (payload.exp) {
+                            const expDate = new Date(payload.exp * 1000);
+                            log(`Token expires: ${expDate.toLocaleString()}`, 'info');
+                        }
+                    }
+                } catch (e) {}
+            } else {
+                display.textContent = 'No token captured yet...';
+                display.classList.add('empty');
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        //  SOUND
+        // ════════════════════════════════════════════════════════════
+        function playSound(type = 'success') {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const frequencies = type === 'success' ? [523, 659, 784, 1047] : [880, 660, 880, 660];
+
+                frequencies.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = freq;
+                    osc.type = type === 'success' ? 'sine' : 'square';
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime + i * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.12 + 0.15);
+                    osc.start(ctx.currentTime + i * 0.12);
+                    osc.stop(ctx.currentTime + i * 0.12 + 0.15);
+                });
+            } catch (e) {}
+        }
+
+        // ════════════════════════════════════════════════════════════
+        //  API FUNCTIONS
+        // ════════════════════════════════════════════════════════════
+        async function apiRequest(endpoint, body, method = 'POST') {
+            const url = `${API_BASE}${endpoint}`;
+
+            // Try direct first, then with CORS proxies
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                const proxyUrl = CORS_PROXIES[i] + (CORS_PROXIES[i] ? encodeURIComponent(url) : url);
+
+                try {
+                    const response = await fetch(CORS_PROXIES[i] ? proxyUrl : url, {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            ...(state.authToken ? { 'Authorization': `Bearer ${state.authToken}` } : {})
+                        },
+                        body: body ? JSON.stringify(body) : undefined,
+                        mode: 'cors'
+                    });
+
+                    const data = await response.json().catch(() => ({ status: response.status }));
+
+                    return {
+                        ok: response.ok,
+                        status: response.status,
+                        data: data
+                    };
+                } catch (e) {
+                    if (i === CORS_PROXIES.length - 1) {
+                        return {
+                            ok: false,
+                            status: 0,
+                            error: 'CORS blocked - use Node.js version',
+                            data: { error: e.message }
+                        };
+                    }
+                }
+            }
+        }
+
+        async function doLogin(email, password) {
+            log(`Attempting login: ${email}`, 'info');
+            updateStatus('Logging in...', 'Sending API request', 'loading');
+
+            const result = await apiRequest('/iams/api/v1/auth/signin', {
+                email: email,
+                password: password
+            });
+
+            showResponse(result.data, !result.ok);
+
+            if (result.ok && (result.data.token || result.data.accessToken)) {
+                state.authToken = result.data.token || result.data.accessToken;
+                state.refreshToken = result.data.refreshToken || '';
+                saveState();
+                updateTokenDisplay();
+
+                log('LOGIN SUCCESS!', 'success');
+                updateStatus('Logged In!', 'Token captured', 'success');
+                playSound('success');
+
+                return { success: true, data: result.data };
+            } else if (result.status === 503) {
+                log('API returned 503 - Service closed', 'error');
+                updateStatus('API Closed', '503 - Service Unavailable', 'error');
+                return { success: false, error: '503', data: result.data };
+            } else if (result.status === 0) {
+                log('CORS blocked - try Node.js version', 'error');
+                updateStatus('CORS Blocked', 'Use Node.js version instead', 'error');
+                return { success: false, error: 'CORS', data: result.data };
+            } else {
+                log(`Login failed: ${result.status}`, 'error');
+                updateStatus('Login Failed', result.data?.message || 'Unknown error', 'error');
+                return { success: false, error: result.status, data: result.data };
+            }
+        }
+
+        async function checkAPIStatus() {
+            log('Checking API status...', 'info');
+            updateStatus('Checking...', 'Testing API connection', 'loading');
+
+            const result = await apiRequest('/iams/api/v1/auth/signin', {
+                email: '',
+                password: ''
+            });
+
+            if (result.status === 503) {
+                log('API Status: CLOSED (503)', 'warning');
+                updateStatus('API Closed', 'Service returns 503', 'error');
+                showResponse({ status: 503, message: 'Service Unavailable - Sign-in is closed' }, true);
+            } else if (result.status === 400 || result.status === 401) {
+                log('API Status: OPEN (accepting requests)', 'success');
+                updateStatus('API Open!', 'Service is accepting requests', 'success');
+                showResponse({ status: result.status, message: 'API is responding - ready for login!' });
+                playSound('success');
+            } else if (result.status === 0) {
+                log('CORS blocked - cannot check from browser', 'error');
+                updateStatus('CORS Blocked', 'Use Node.js version', 'error');
+                showResponse({ error: 'CORS blocked', suggestion: 'Use the Node.js version for reliable API access' }, true);
+            } else {
+                log(`API Status: ${result.status}`, 'info');
+                updateStatus('API Response', `Status: ${result.status}`, '');
+                showResponse(result.data);
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════
+        //  RAPID FIRE
+        // ════════════════════════════════════════════════════════════
+        let rapidStats = { attempts: 0, success: 0, failed: 0, errors503: 0 };
+
+        async function startRapidFire() {
+            const email = $('inputEmail').value || state.email;
+            const password = $('inputPassword').value || state.password;
+            const count = parseInt($('rapidCount').value) || 20;
+            const delay = parseInt($('rapidDelay').value) || 200;
+
+            if (!email || !password) {
+                log('Enter email and password first!', 'error');
+                return;
+            }
+
+            state.isRapidRunning = true;
+            rapidStats = { attempts: 0, success: 0, failed: 0, errors503: 0 };
+
+            $('btnRapidFire').disabled = true;
+            $('btnStopRapid').disabled = false;
+
+            log(`Starting rapid fire: ${count} attempts, ${delay}ms delay`, 'warning');
+            updateStatus('Rapid Fire', 'Running...', 'loading');
+
+            for (let i = 0; i < count && state.isRapidRunning; i++) {
+                rapidStats.attempts++;
+                $('statAttempts').textContent = rapidStats.attempts;
+
+                const result = await doLogin(email, password);
+
+                if (result.success) {
+                    rapidStats.success++;
+                    $('statSuccess').textContent = rapidStats.success;
+                    log(`SUCCESS on attempt ${i + 1}!`, 'success');
+                    break;
+                } else if (result.error === '503') {
+                    rapidStats.errors503++;
+                    $('stat503').textContent = rapidStats.errors503;
+                } else {
+                    rapidStats.failed++;
+                    $('statFailed').textContent = rapidStats.failed;
+                }
+
+                if (i < count - 1 && state.isRapidRunning) {
+                    await new Promise(r => setTimeout(r, delay));
+                }
+            }
+
+            state.isRapidRunning = false;
+            $('btnRapidFire').disabled = false;
+            $('btnStopRapid').disabled = true;
+
+            log(`Rapid fire completed: ${rapidStats.attempts} attempts, ${rapidStats.success} success`, 'info');
+            updateStatus('Rapid Fire Done', `${rapidStats.success} success / ${rapidStats.attempts} attempts`, rapidStats.success > 0 ? 'success' : '');
+        }
+
+        function stopRapidFire() {
+            state.isRapidRunning = false;
+            log('Rapid fire stopped by user', 'warning');
+        }
+
+        // ════════════════════════════════════════════════════════════
+        //  SCHEDULED LOGIN
+        // ════════════════════════════════════════════════════════════
+        let scheduleTimer = null;
+        let scheduleTimeout = null;
+        let schedAttempts = 0;
+
+        function updateScheduleDisplay() {
+            const timeStr = $('scheduleTime').value;
+            if (!timeStr) {
+                $('scheduleTimer').textContent = '--:--:--';
+                return;
+            }
+
+            const [hours, minutes, seconds = 0] = timeStr.split(':').map(Number);
+            const target = new Date();
+            target.setHours(hours, minutes, seconds, 0);
+
+            const now = new Date();
+            if (target <= now) target.setDate(target.getDate() + 1);
+
+            const diff = target - now;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+
+            $('scheduleTimer').textContent =
+                `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+            if (diff < 10000) {
+                $('scheduleTimer').classList.add('urgent');
+            } else {
+                $('scheduleTimer').classList.remove('urgent');
+            }
+        }
+
+        async function startSchedule() {
+            const timeStr = $('scheduleTime').value;
+            const offset = parseInt($('scheduleOffset').value) || 5;
+            const interval = parseInt($('scheduleInterval').value) || 300;
+            const duration = parseInt($('scheduleDuration').value) || 120;
+            const email = $('inputEmail').value || state.email;
+            const password = $('inputPassword').value || state.password;
+
+            if (!timeStr) {
+                log('Set a target time first!', 'error');
+                return;
+            }
+
+            if (!email || !password) {
+                log('Save credentials first!', 'error');
+                return;
+            }
+
+            const [hours, minutes, seconds = 0] = timeStr.split(':').map(Number);
+            const target = new Date();
+            target.setHours(hours, minutes, seconds, 0);
+
+            const now = new Date();
+            if (target <= now) target.setDate(target.getDate() + 1);
+
+            const startTime = new Date(target.getTime() - (offset * 1000));
+            const waitTime = startTime - now;
+
+            if (waitTime < 0) {
+                log('Target time already passed!', 'error');
+                return;
+            }
+
+            state.isScheduleRunning = true;
+            schedAttempts = 0;
+
+            $('btnStartSchedule').disabled = true;
+            $('btnStopSchedule').disabled = false;
+            $('schedStatus').textContent = 'WAITING';
+
+            log(`Scheduled for ${timeStr}. Starting ${offset}s before.`, 'success');
+            updateStatus('Scheduled', `Waiting for ${timeStr}`, 'loading');
+
+            // Start timer display
+            scheduleTimer = setInterval(updateScheduleDisplay, 1000);
+
+            // Wait until start time
+            scheduleTimeout = setTimeout(async () => {
+                log('STARTING SCHEDULED LOGIN!', 'warning');
+                $('schedStatus').textContent = 'RUNNING';
+                playSound('alert');
+
+                const endTime = Date.now() + (duration * 1000);
+
+                const attemptLogin = async () => {
+                    if (!state.isScheduleRunning || Date.now() > endTime) {
+                        stopSchedule();
+                        return;
+                    }
+
+                    schedAttempts++;
+                    $('schedAttempts').textContent = schedAttempts;
+
+                    const result = await doLogin(email, password);
+
+                    if (result.success) {
+                        log('SCHEDULED LOGIN SUCCESS!', 'success');
+                        $('schedStatus').textContent = 'SUCCESS!';
+                        $('scheduleTimer').classList.remove('urgent');
+                        $('scheduleTimer').classList.add('success');
+                        playSound('success');
+                        stopSchedule();
+                        return;
+                    }
+
+                    if (state.isScheduleRunning && Date.now() < endTime) {
+                        setTimeout(attemptLogin, interval);
+                    } else {
+                        stopSchedule();
+                    }
+                };
+
+                attemptLogin();
+            }, waitTime);
+        }
+
+        function stopSchedule() {
+            state.isScheduleRunning = false;
+
+            if (scheduleTimeout) {
+                clearTimeout(scheduleTimeout);
+                scheduleTimeout = null;
+            }
+            if (scheduleTimer) {
+                clearInterval(scheduleTimer);
+                scheduleTimer = null;
+            }
+
+            $('btnStartSchedule').disabled = false;
+            $('btnStopSchedule').disabled = true;
+            $('scheduleTimer').classList.remove('urgent');
+
+            if ($('schedStatus').textContent !== 'SUCCESS!') {
+                $('schedStatus').textContent = 'STOPPED';
+            }
+
+            log('Schedule stopped', 'info');
+            updateStatus('Ready', 'Schedule stopped', '');
+        }
+
+        // ════════════════════════════════════════════════════════════
+        //  EVENT LISTENERS
+        // ════════════════════════════════════════════════════════════
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                $('tab' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
+            };
+        });
+
+        // Login tab
+        $('btnSave').onclick = () => {
+            state.email = $('inputEmail').value.trim();
+            state.password = $('inputPassword').value;
+            saveState();
+            log('Credentials saved!', 'success');
+            playSound('success');
+        };
+
+        $('btnLogin').onclick = () => {
+            const email = $('inputEmail').value || state.email;
+            const password = $('inputPassword').value || state.password;
+            doLogin(email, password);
+        };
+
+        $('btnCheckAPI').onclick = checkAPIStatus;
+        $('btnRapidFire').onclick = startRapidFire;
+        $('btnStopRapid').onclick = stopRapidFire;
+
+        // Schedule tab
+        $('btnStartSchedule').onclick = startSchedule;
+        $('btnStopSchedule').onclick = stopSchedule;
+        $('scheduleTime').onchange = updateScheduleDisplay;
+
+        // Token tab
+        $('btnSaveToken').onclick = () => {
+            const token = $('manualToken').value.trim();
+            if (token) {
+                state.authToken = token;
+                saveState();
+                updateTokenDisplay();
+                log('Token saved!', 'success');
+            }
+        };
+
+        $('btnTestToken').onclick = async () => {
+            if (!state.authToken) {
+                log('No token to test!', 'error');
+                return;
+            }
+            log('Testing token...', 'info');
+            // Try an authenticated API call
+            const result = await apiRequest('/iams/api/v1/user/profile', null, 'GET');
+            showResponse(result.data, !result.ok);
+        };
+
+        $('btnClearToken').onclick = () => {
+            state.authToken = '';
+            saveState();
+            updateTokenDisplay();
+            $('manualToken').value = '';
+            log('Token cleared', 'info');
+        };
+
+        // Logs tab
+        $('btnClearLogs').onclick = () => {
+            $('logBox').innerHTML = '';
+            log('Logs cleared', 'info');
+        };
+
+        $('btnExportLogs').onclick = () => {
+            const logs = $('logBox').innerText;
+            const blob = new Blob([logs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ivac-api-logs.txt';
+            a.click();
+            log('Logs exported', 'success');
+        };
+
+        // ════════════════════════════════════════════════════════════
+        //  INITIALIZATION
+        // ════════════════════════════════════════════════════════════
+        loadUI();
+        setInterval(updateScheduleDisplay, 1000);
+
+        log('IVAC Direct API Client loaded!', 'success');
+        log('Note: CORS may block browser requests', 'warning');
+        log('For guaranteed access, use the Node.js version', 'info');
+    </script>
+</body>
+</html>
